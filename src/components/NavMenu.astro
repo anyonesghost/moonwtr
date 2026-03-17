@@ -1,0 +1,21 @@
+---
+const items = [
+  { number: '01', label: 'Work',     href: '/' },
+  { number: '02', label: 'About',    href: '/about/' },
+  { number: '03', label: 'Projects', href: '/projects/' },
+  { number: '04', label: 'Contact',  href: '/contact/' },
+] as const;
+---
+
+<nav class="nav-menu" aria-label="Site sections">
+  <ul class="nav-menu__grid" role="list">
+    {items.map(({ number, label, href }) => (
+      <li class="nav-menu__row">
+        <a href={href} class="nav-menu__link">
+          <span class="nav-menu__number" aria-hidden="true">{number}</span>
+          <span class="nav-menu__label">{label}</span>
+        </a>
+      </li>
+    ))}
+  </ul>
+</nav>
