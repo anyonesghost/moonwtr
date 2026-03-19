@@ -39,6 +39,9 @@ const work = defineCollection({
 
       /** Flag for promoting to a featured / hero slot */
       featured: z.boolean().default(false),
+
+      /** Optional external link for the project (live site, video, etc.) */
+      externalUrl: z.string().url().optional(),
     }),
 });
 

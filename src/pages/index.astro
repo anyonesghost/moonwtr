@@ -1,8 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import ProjectCard from '../components/ProjectCard.astro';
-import NavMenu from '../components/NavMenu.astro';
-import '../styles/global 3.css';
+import BaseLayout from '../layouts/BaseLayout.astro';
 
 const allProjects = await getCollection('work');
 const projects = allProjects.sort((a, b) => {
@@ -11,206 +10,177 @@ const projects = allProjects.sort((a, b) => {
 });
 ---
 
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="generator" content={Astro.generator} />
-    <meta
-      name="description"
-      content="Creative portfolio — selected work in branding, editorial, and motion."
-    />
-    <title>Portfolio — Selected Work</title>
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" href="/favicon.ico" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;1,400&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap"
-      rel="stylesheet"
-    />
-  </head>
+<BaseLayout>
 
-  <body>
+  <!-- ─── Hero section ────────────────────────────────────────── -->
+  <section class="hero-section" aria-label="Site title">
+    <h1 class="hero-heading">
+      <span class="hero-heading__serif">MOON.</span><span class="hero-heading__sans">WTR</span>
+    </h1>
+    <p class="hero-tagline">It's kinda like magic</p>
+  </section>
 
-    <!-- ─── Skip link (accessibility) ──────────────────────────── -->
-    <a href="#main-content" class="skip-link">Skip to content</a>
+  <!-- ─── Main content ────────────────────────────────────────── -->
+  <main id="main-content" class="site-main">
 
-    <!-- ─── Main content ────────────────────────────────────────── -->
-    <main id="main-content" class="site-main">
+    <!-- ─── Work section ──────────────────────────────────────── -->
+    <section class="work-section" aria-label="Work projects">
 
-      <!-- Hero / intro -->
-      <section class="intro-section" aria-label="Introduction">
-        <div class="intro-section__inner">
-          <div class="intro-row">
-            <NavMenu />
-            <h1 class="intro-heading">
-              <span class="intro-heading__serif">MOON.</span><span class="intro-heading__sans">WTR</span>
-            </h1>
-          </div>
+      <header class="work-section__header">
+        <h2 class="work-section__heading sr-only">Projects</h2>
+      </header>
 
-          <p class="intro-body">
-            Motion, music, games, and machines — made by hand in Ohio.
-          </p>
-        </div>
-      </section>
-
-      <!-- ─── Work section ──────────────────────────────────────── -->
-      <section class="work-section" aria-label="Work projects">
-
-        <header class="work-section__header">
-          <h2 class="work-section__heading sr-only">Projects</h2>
-        </header>
-
-        <!-- Filter bar -->
-        <nav class="filter-bar" aria-label="Filter by discipline">
-          <ul class="filter-bar__list" role="list">
-            <li>
-              <button
-                class="filter-bar__btn is-active"
-                data-filter="all"
-                aria-pressed="true"
-              >All</button>
+      <!-- Project grid -->
+      {projects.length > 0 ? (
+        <ul class="project-grid" role="list">
+          {projects.map((project, index) => (
+            <li
+              class="project-grid__item"
+              role="listitem"
+              data-tags={project.data.tags.map(t => t.toLowerCase()).join(',')}
+              style={`--card-delay: ${index * 100}ms`}
+            >
+              <ProjectCard project={project} />
             </li>
-            <li>
-              <button
-                class="filter-bar__btn"
-                data-filter="game"
-                aria-pressed="false"
-              >Game</button>
-            </li>
-            <li>
-              <button
-                class="filter-bar__btn"
-                data-filter="film"
-                aria-pressed="false"
-              >Film</button>
-            </li>
-            <li>
-              <button
-                class="filter-bar__btn"
-                data-filter="build"
-                aria-pressed="false"
-              >Build</button>
-            </li>
-          </ul>
-        </nav>
+          ))}
+        </ul>
+      ) : (
+        <p class="project-grid__empty">
+          No projects yet. Add <code>.md</code> files to{' '}
+          <code>src/content/work/</code>.
+        </p>
+      )}
 
-        <!-- Project grid -->
-        {projects.length > 0 ? (
-          <ul class="project-grid" role="list">
-            {projects.map((project, index) => (
-              <li
-                class="project-grid__item"
-                role="listitem"
-                data-tags={project.data.tags.map(t => t.toLowerCase()).join(',')}
-                style={`--card-delay: ${index * 100}ms`}
-              >
-                <ProjectCard project={project} />
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p class="project-grid__empty">
-            No projects yet. Add <code>.md</code> files to{' '}
-            <code>src/content/work/</code>.
-          </p>
-        )}
+    </section>
 
-      </section>
+  </main>
 
-    </main>
-
-    <!-- ─── Site footer ─────────────────────────────────────────── -->
-    <footer class="site-footer" role="contentinfo">
-      <div class="site-footer__inner">
-
-        <small class="site-footer__copy">
-          &copy; {new Date().getFullYear()} Jay Paul Newhouse
-        </small>
-
-        <nav class="footer-nav" aria-label="Footer navigation">
-          <ul class="footer-nav__list" role="list">
-            <li>
-              <a
-                href="https://linkedin.com"
-                class="footer-nav__link"
-                rel="noopener noreferrer"
-                target="_blank"
-              >LinkedIn</a>
-            </li>
-            <li>
-              <a
-                href="https://instagram.com"
-                class="footer-nav__link"
-                rel="noopener noreferrer"
-                target="_blank"
-              >Instagram</a>
-            </li>
-          </ul>
-        </nav>
-
-      </div>
-    </footer>
-
-  </body>
-</html>
+</BaseLayout>
 
 <script>
-  // ── Filter keywords per category ───────────────────────────────────────
-  const filterMap: Record<string, string[]> = {
-    game:  ['game', 'web', 'narrative'],
-    film:  ['film', 'motion', 'lore'],
-    build: ['build', 'wrap', 'documentation'],
-  };
-
-  const buttons = document.querySelectorAll<HTMLButtonElement>('.filter-bar__btn');
-  const items   = document.querySelectorAll<HTMLLIElement>('.project-grid__item');
-
-  // ── Ensure the last visible card spans full width when alone in a row ──
-  function updateWideCard() {
-    const visible = [...items].filter(item => !item.hidden);
-    visible.forEach(item => item.classList.remove('project-grid__item--wide'));
-    if (visible.length % 2 !== 0) {
-      visible[visible.length - 1].classList.add('project-grid__item--wide');
-    }
-  }
-
-  // ── Filter grid by category ────────────────────────────────────────────
-  function filterGrid(active: string) {
-    items.forEach(item => {
-      if (active === 'all') {
-        item.hidden = false;
-      } else {
-        const tags     = (item.dataset.tags ?? '').split(',');
-        const keywords = filterMap[active] ?? [];
-        item.hidden    = !keywords.some(k => tags.some(t => t.includes(k)));
-      }
-    });
-    updateWideCard();
-  }
-
-  // ── Filter button click ────────────────────────────────────────────────
-  buttons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      buttons.forEach(b => {
-        b.classList.remove('is-active');
-        b.setAttribute('aria-pressed', 'false');
-      });
-      btn.classList.add('is-active');
-      btn.setAttribute('aria-pressed', 'true');
-      filterGrid(btn.dataset.filter ?? 'all');
-    });
-  });
-
-  // ── Remove entrance animation after first play so filter-show is instant ──
+  // ── Remove entrance animation after first play ──────────────────────────────
+  const items = document.querySelectorAll<HTMLLIElement>('.project-grid__item');
   items.forEach(item => {
     item.addEventListener('animationend', () => {
       item.style.animationName = 'none';
     }, { once: true });
   });
 
-  // ── Set initial wide card ──────────────────────────────────────────────
-  updateWideCard();
+  // ── Grid title filter ───────────────────────────────────────────────────────
+  const gridItems = document.querySelectorAll<HTMLLIElement>('.project-grid__item');
+
+  function filterGridByTitle(query: string) {
+    gridItems.forEach(item => {
+      const title = item.querySelector('.project-card__title')?.textContent?.toLowerCase() ?? '';
+      item.hidden = query.length > 0 && !title.includes(query);
+    });
+  }
+
+  // ── Search row ───────────────────────────────────────────────────────────────
+  const searchRow   = document.getElementById('js-search-row');
+  const searchInput = document.getElementById('js-search-input') as HTMLInputElement | null;
+
+  if (searchRow && searchInput) {
+    const searchPill = searchRow.querySelector<HTMLButtonElement>('.top-bar__search-pill')!;
+
+    function openSearch() {
+      searchRow!.classList.add('is-searching');
+      searchInput!.focus();
+    }
+
+    function closeSearch() {
+      searchRow!.classList.remove('is-searching');
+      searchInput!.value = '';
+      filterGridByTitle('');
+    }
+
+    searchPill.addEventListener('click', openSearch);
+
+    searchInput.addEventListener('input', () => {
+      filterGridByTitle(searchInput!.value.trim().toLowerCase());
+    });
+
+    searchInput.addEventListener('keydown', (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeSearch();
+    });
+
+    document.addEventListener('click', (e: MouseEvent) => {
+      if (!searchRow.contains(e.target as Node) && searchRow.classList.contains('is-searching')) {
+        closeSearch();
+      }
+    });
+  }
+
+  // ── Filter row ───────────────────────────────────────────────────────────────
+  const filterRow = document.getElementById('js-filter-row');
+  if (filterRow) {
+    const filterPill = filterRow.querySelector<HTMLButtonElement>('.top-bar__search-pill')!;
+    filterPill?.addEventListener('click', () => {
+      console.log('Filter clicked — interaction coming soon');
+    });
+  }
+
+  // ── Proximity magnet effect on card backgrounds ───────────────────────────
+  const MAGNET_RADIUS = 200; // px — how close cursor must be to activate
+  const MAGNET_STRENGTH = 0.08; // multiplier on displacement
+
+  interface CardEntry {
+    wrapper: HTMLElement;
+    bg: HTMLElement;
+  }
+
+  const cardEntries: CardEntry[] = Array.from(
+    document.querySelectorAll<HTMLElement>('.card-wrapper')
+  ).map(wrapper => ({
+    wrapper,
+    bg: wrapper.querySelector<HTMLElement>('.card-magnet-bg')!,
+  })).filter(e => e.bg !== null);
+
+  let rafId: number | null = null;
+  let mouseX = 0;
+  let mouseY = 0;
+
+  document.addEventListener('mousemove', (e: MouseEvent) => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+
+    if (rafId === null) {
+      rafId = requestAnimationFrame(updateMagnets);
+    }
+  });
+
+  function updateMagnets() {
+    rafId = null;
+
+    cardEntries.forEach(({ wrapper, bg }) => {
+      const rect = wrapper.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+
+      const dx = mouseX - cx;
+      const dy = mouseY - cy;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      if (dist < MAGNET_RADIUS) {
+        // Disable CSS transition so tracking feels instant
+        bg.style.transition = 'opacity 0.2s ease';
+        bg.style.opacity = '0.25';
+        bg.style.transform = `translate(${dx * MAGNET_STRENGTH}px, ${dy * MAGNET_STRENGTH}px)`;
+      } else {
+        // Re-enable CSS transition for snap-back and fade out
+        bg.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.3s ease';
+        bg.style.opacity = '0';
+        bg.style.transform = 'translate(0, 0)';
+      }
+    });
+  }
+
+  // Reset all on mouse leave
+  document.addEventListener('mouseleave', () => {
+    cardEntries.forEach(({ bg }) => {
+      bg.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.3s ease';
+      bg.style.opacity = '0';
+      bg.style.transform = 'translate(0, 0)';
+    });
+  });
 </script>

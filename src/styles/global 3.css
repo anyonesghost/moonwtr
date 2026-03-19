@@ -771,6 +771,219 @@ body {
 
 
 /* ==========================================================================
+   PROJECT DETAIL PAGE
+   ========================================================================== */
+
+/* ── Hero ── */
+
+.project-hero {
+  position: relative;
+  width: 100%;
+  height: 70vh;
+  overflow: hidden;
+}
+
+.project-hero__media {
+  position: absolute;
+  inset: 0;
+}
+
+.project-hero__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+/* Bottom gradient so title is always legible */
+.project-hero__gradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    transparent 40%,
+    rgba(0, 0, 0, 0.6) 100%
+  );
+  pointer-events: none;
+}
+
+.project-hero__title-wrap {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  padding: 0 40px 40px;
+}
+
+.project-hero__title {
+  font-family: var(--font-ui);
+  font-size: clamp(48px, 8vw, 120px);
+  font-weight: 700;
+  color: #fff;
+  line-height: 0.9;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+/* Entrance animation */
+.project-hero {
+  opacity: 1;
+  transition: none;
+}
+
+.project-hero__title-wrap {
+  transform: translateY(0);
+  opacity: 1;
+  transition: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .project-hero.is-entering {
+    opacity: 0;
+  }
+
+  .project-hero.is-entering .project-hero__title-wrap {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  .project-hero.has-entered {
+    opacity: 1;
+    transition: opacity 400ms ease;
+  }
+
+  .project-hero.has-entered .project-hero__title-wrap {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 400ms ease 100ms, transform 400ms ease 100ms;
+  }
+}
+
+/* ── Content section ── */
+
+.project-content {
+  border-top: 2px solid var(--color-purple);
+}
+
+.project-content__inner {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 40px 80px;
+}
+
+.project-back {
+  display: inline-block;
+  margin-top: 32px;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--color-purple);
+  text-decoration: none;
+  transition: opacity 200ms ease;
+}
+
+.project-back:hover {
+  opacity: 0.7;
+}
+
+/* ── Two-column body ── */
+
+.project-body {
+  display: grid;
+  grid-template-columns: 65fr 35fr;
+  gap: 48px;
+  margin-top: 0;
+}
+
+/* Left: rendered markdown prose */
+.project-body__prose {
+  padding-top: 48px;
+  font-family: var(--font-ui);
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--color-text);
+}
+
+.project-body__prose h2 {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-purple);
+  margin: 32px 0 8px;
+}
+
+.project-body__prose h2:first-child {
+  margin-top: 0;
+}
+
+.project-body__prose p {
+  margin: 0 0 16px;
+}
+
+.project-body__prose ul,
+.project-body__prose ol {
+  padding-left: 20px;
+  margin: 0 0 16px;
+}
+
+.project-body__prose li {
+  margin-bottom: 4px;
+}
+
+/* Right: meta column */
+.project-body__meta {
+  padding-top: 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.project-meta__tags {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.project-meta__tag {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  color: var(--color-text);
+  letter-spacing: 0.04em;
+}
+
+.project-meta__year {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  color: var(--color-mid);
+  font-variant-numeric: tabular-nums;
+}
+
+.project-meta__cta {
+  display: inline-block;
+  align-self: flex-start;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--color-purple);
+  border: 1.5px solid var(--color-purple);
+  border-radius: 999px;
+  padding: 6px 16px;
+  text-decoration: none;
+  transition: background-color 200ms ease, color 200ms ease;
+}
+
+.project-meta__cta:hover {
+  background-color: var(--color-purple);
+  color: #fff;
+}
+
+
+/* ==========================================================================
    PAGE ENTRANCE ANIMATION
    ========================================================================== */
 

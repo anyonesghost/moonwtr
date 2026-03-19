@@ -1,0 +1,121 @@
+---
+import NavMenu from '../components/NavMenu.astro';
+import '../styles/global 3.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = 'Portfolio — Selected Work',
+  description = 'Creative portfolio — selected work in branding, editorial, and motion.',
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="description" content={description} />
+    <title>{title}</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;1,400&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+
+  <body>
+
+    <a href="#main-content" class="skip-link">Skip to content</a>
+
+    <div class="page-frame">
+
+      <header class="top-bar" role="banner">
+
+        <div class="top-bar__nav">
+          <NavMenu />
+        </div>
+
+        <div class="top-bar__logo" aria-label="JP logo">
+          <span class="icon icon--avatar" aria-hidden="true"></span>
+        </div>
+
+        <div class="top-bar__social">
+          <a href="mailto:hello@jaypaulnewhouse.com" aria-label="Email">
+            <span class="icon icon--email" aria-hidden="true"></span>
+          </a>
+          <a href="https://instagram.com/jaypaulnewhouse" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+            <span class="icon icon--instagram" aria-hidden="true"></span>
+          </a>
+        </div>
+
+        <div class="top-bar__tagline">
+          <p>Just a man from Ohio making motion, music,<br/>games, worlds, and machines.</p>
+        </div>
+
+        <div class="top-bar__search">
+
+          <div class="top-bar__search-row" id="js-search-row">
+            <span class="icon icon--search" aria-hidden="true"></span>
+            <div class="top-bar__search-track">
+              <div class="top-bar__search-line"></div>
+              <button class="top-bar__search-pill" aria-label="Open search" type="button">
+                SEARCH
+              </button>
+              <input
+                type="search"
+                class="top-bar__search-input"
+                id="js-search-input"
+                placeholder="TYPE TO SEARCH..."
+                aria-label="Search projects"
+              />
+            </div>
+          </div>
+
+          <div class="top-bar__search-row" id="js-filter-row">
+            <span class="icon icon--filter" aria-hidden="true"></span>
+            <div class="top-bar__search-track">
+              <div class="top-bar__search-line"></div>
+              <button class="top-bar__search-pill" aria-label="Filter projects" type="button">
+                FILTER
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+      </header>
+
+      <slot />
+
+      <footer class="site-footer" role="contentinfo">
+        <div class="site-footer__inner">
+          <small class="site-footer__copy">
+            &copy; {new Date().getFullYear()} Jay Paul Newhouse
+          </small>
+          <nav class="footer-nav" aria-label="Footer navigation">
+            <ul class="footer-nav__list" role="list">
+              <li>
+                <a
+                  href="https://instagram.com/jaypaulnewhouse"
+                  class="footer-nav__link"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >Instagram</a>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </footer>
+
+    </div><!-- /.page-frame -->
+
+  </body>
+</html>

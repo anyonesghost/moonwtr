@@ -10,6 +10,8 @@ const { title, tags, year, thumbnail, featured } = project.data;
 const slug = project.id;
 ---
 
+<div class="card-wrapper">
+<div class="card-magnet-bg" aria-hidden="true"></div>
 <article class="project-card" data-featured={featured}>
   <a href={`/work/${slug}/`} class="project-card__link">
 
@@ -23,6 +25,7 @@ const slug = project.id;
         decoding="async"
         class="project-card__thumbnail"
       />
+      <span class="project-card__hover-title" aria-hidden="true">{title}</span>
     </figure>
 
     <div class="project-card__body">
@@ -41,3 +44,4 @@ const slug = project.id;
     </div>
   </a>
 </article>
+</div>

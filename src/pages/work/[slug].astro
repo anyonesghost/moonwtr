@@ -1,0 +1,107 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+export async function getStaticPaths() {
+  const projects = await getCollection('work');
+  return projects.map(project => ({
+    params: { slug: project.id },
+    props: { project },
+  }));
+}
+
+const { project } = Astro.props;
+const { title, tags, year, thumbnail, description, externalUrl } = project.data;
+const { Content } = await render(project);
+
+// Determine CTA label based on tags
+function getCtaLabel(tags: string[]): string {
+  const lower = tags.map(t => t.toLowerCase());
+  if (lower.includes('game')) return 'PLAY →';
+  if (lower.includes('film') || lower.includes('motion')) return 'WATCH →';
+  return 'VIEW →';
+}
+const ctaLabel = getCtaLabel(tags);
+---
+
+<BaseLayout title={`${title} — Moon.WTR`} description={description}>
+
+  <main id="main-content">
+
+    <!-- ─── Hero ────────────────────────────────────────────────── -->
+    <section class="project-hero" aria-label={`${title} hero`}>
+      <div class="project-hero__media">
+        <img
+          src={thumbnail.src}
+          alt={`${title} — hero image`}
+          width={thumbnail.width}
+          height={thumbnail.height}
+          class="project-hero__img"
+          decoding="async"
+        />
+        <div class="project-hero__gradient" aria-hidden="true"></div>
+      </div>
+      <div class="project-hero__title-wrap">
+        <h1 class="project-hero__title">{title}</h1>
+      </div>
+    </section>
+
+    <!-- ─── Content ─────────────────────────────────────────────── -->
+    <section class="project-content" aria-label="Project details">
+
+      <div class="project-content__inner">
+
+        <!-- Back link -->
+        <a href="/" class="project-back">← BACK</a>
+
+        <!-- Two-column body -->
+        <div class="project-body">
+
+          <!-- Left: prose -->
+          <div class="project-body__prose">
+            <Content />
+          </div>
+
+          <!-- Right: meta -->
+          <aside class="project-body__meta">
+            <ul class="project-meta__tags" role="list" aria-label="Project disciplines">
+              {tags.map(tag => (
+                <li class="project-meta__tag">{tag}</li>
+              ))}
+            </ul>
+            <time class="project-meta__year" datetime={String(year)}>{year}</time>
+            {externalUrl && (
+              <a
+                href={externalUrl}
+                class="project-meta__cta"
+                target="_blank"
+                rel="noopener noreferrer"
+              >{ctaLabel}</a>
+            )}
+          </aside>
+
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+</BaseLayout>
+
+<script>
+  // ── Hero entrance animation ────────────────────────────────────────────────
+  const hero = document.querySelector<HTMLElement>('.project-hero');
+  const titleWrap = document.querySelector<HTMLElement>('.project-hero__title-wrap');
+
+  if (hero) {
+    hero.classList.add('is-entering');
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        hero.classList.remove('is-entering');
+        hero.classList.add('has-entered');
+      });
+    });
+  }
+</script>
