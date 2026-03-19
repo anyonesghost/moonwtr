@@ -15,10 +15,10 @@
 
 :root {
   /* Colors */
-  --color-bg:     #F5F2ED;
+  --color-bg:     #E8E4D4;
   --color-text:   #1A1A1A;
   --color-mid:    #888888;
-  --color-accent: #1A1A1A;
+  --color-purple: #7B2FBE;
 
   /* Spacing — 8px base scale */
   --space-1:  8px;
@@ -34,8 +34,7 @@
   --font-serif: 'Playfair Display', Georgia, serif;
 
   /* Layout */
-  --max-width:  1200px;
-  --nav-height: 60px;
+  --max-width: 1200px;
 
   /* Motion */
   --ease-default: cubic-bezier(0.4, 0, 0.2, 1);
@@ -140,123 +139,344 @@ body {
 
 
 /* ==========================================================================
-   SITE HEADER
+   PAGE FRAME — full-height left/right/top purple border column
    ========================================================================== */
 
-.site-header {
-  position: fixed;
-  top: 0;
+.page-frame {
+  margin: 20px 40px 0;
+  border-top: 2px solid var(--color-purple);
+  border-left: 2px solid var(--color-purple);
+  border-right: 2px solid var(--color-purple);
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+
+/* ==========================================================================
+   TOP BAR
+   ========================================================================== */
+
+.top-bar {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  width: 100%;
+  max-width: none;
+  height: 90px;
+  border-bottom: 2px solid var(--color-purple);
+  background-color: var(--color-bg);
+  position: sticky;
+  top: 20px;
+  z-index: 100;
+  box-sizing: border-box;
+}
+
+/* ── Section 1: Nav grid ── */
+
+.top-bar__nav {
+  flex-shrink: 0;
+  width: 118px;
+  overflow: hidden;
+  border-right: 2px solid var(--color-purple);
+}
+
+/* Nav grid becomes a flex column filling the full nav cell height */
+.top-bar__nav .nav-menu__grid {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border-top: none;
+  border-left: none;
+}
+
+/* Each row takes an equal share of available height */
+.top-bar__nav .nav-menu__row {
+  flex: 1;
+  display: flex;
+}
+
+/* Link fills its row */
+.top-bar__nav .nav-menu__link {
+  flex: 1;
+  height: auto;
+}
+
+/* Number cell */
+.top-bar__nav .nav-menu__number {
+  color: var(--color-purple);
+  background-color: var(--color-bg);
+  border-right: 2px solid var(--color-purple);
+  border-bottom: 2px solid var(--color-purple);
+  border-top: none;
+  border-left: none;
+  height: auto;
+  font-size: 11px;
+  width: 28px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 0 0 0 4px;
+}
+
+/* Label cell */
+.top-bar__nav .nav-menu__label {
+  color: var(--color-purple);
+  background-color: var(--color-bg);
+  border-right: none;
+  border-bottom: 2px solid var(--color-purple);
+  border-top: none;
+  border-left: none;
+  height: auto;
+  font-size: 14px;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 6px 0 0;
+}
+
+/* Last row: no bottom border — bar's 5px bottom border is the boundary */
+.top-bar__nav .nav-menu__row:last-child .nav-menu__number,
+.top-bar__nav .nav-menu__row:last-child .nav-menu__label {
+  border-bottom: none;
+}
+
+.top-bar__nav .nav-menu__row:hover .nav-menu__number {
+  background-color: var(--color-purple);
+  color: #fff;
+}
+
+.top-bar__nav .nav-menu__row:hover .nav-menu__label {
+  background-color: var(--color-bg);
+  font-style: italic;
+}
+
+/* ── Section 2: Avatar ── */
+
+.top-bar__logo {
+  flex-shrink: 0;
+  width: 90px;
+  height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-right: 2px solid var(--color-purple);
+}
+
+/* ── Section 3: Social icons ── */
+
+.top-bar__social {
+  flex-shrink: 0;
+  width: 90px;
+  height: 90px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  overflow: hidden;
+  border-right: 2px solid var(--color-purple);
+}
+
+.top-bar__social a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.85;
+  transition: opacity 150ms ease;
+}
+
+.top-bar__social a:hover {
+  opacity: 1;
+}
+
+/* ── Section 4: Tagline ── */
+
+.top-bar__tagline {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 24px;
+}
+
+.top-bar__tagline p {
+  font-family: var(--font-ui);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--color-purple);
+  letter-spacing: 0.02em;
+  text-align: right;
+}
+
+/* ── Section 5: Search/filter rows ── */
+
+.top-bar__search {
+  flex-shrink: 0;
+  width: 160px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 0 0 12px;
+  gap: 10px;
+  border-left: 2px solid var(--color-purple);
+  overflow: hidden;
+}
+
+.top-bar__search-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Track: relative container for line, pill, and input */
+.top-bar__search-track {
+  flex: 1;
+  position: relative;
+  height: 22px;
+}
+
+/* The always-visible purple line */
+.top-bar__search-line {
+  position: absolute;
   left: 0;
   right: 0;
-  height: var(--nav-height);
-  z-index: 100;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 1.5px;
+  background-color: var(--color-purple);
+  pointer-events: none;
+}
+
+/* Pill — anchored to right edge, starts off-screen right, slides in on hover */
+.top-bar__search-pill {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%) translateX(100%);
   background-color: var(--color-bg);
-}
-
-.site-header__inner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  max-width: var(--max-width);
-  height: 100%;
-  margin: 0 auto;
-  padding: 0 var(--space-6);
-}
-
-.site-logo__text {
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-}
-
-.site-nav__list {
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
-}
-
-.site-nav__link {
-  font-size: 11px;
-  font-weight: 400;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: var(--color-mid);
-  transition: color 200ms var(--ease-default);
-}
-
-.site-nav__link:hover,
-.site-nav__link[aria-current="page"] {
-  color: var(--color-text);
-}
-
-
-/* ==========================================================================
-   MAIN
-   ========================================================================== */
-
-.site-main {
-  padding-top: 0;
-}
-
-
-/* ==========================================================================
-   INTRO SECTION
-   ========================================================================== */
-
-.intro-section {
-  padding: var(--space-6) var(--space-6) var(--space-8);
-  max-width: var(--max-width);
-  margin: 0 auto;
-}
-
-.intro-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-6);
-}
-
-.intro-heading {
-  font-size: clamp(3rem, 10vw, 7.5rem);
-  line-height: 0.95;
-  letter-spacing: -0.03em;
-  color: var(--color-text);
-}
-
-/* "MOON." — MADEMountain */
-.intro-heading__serif {
-  font-family: 'MADEMountain', var(--font-serif);
-  font-style: normal;
-  font-weight: normal;
-}
-
-/* "Work" — Space Mono regular */
-.intro-heading__sans {
+  border: 1.5px solid var(--color-purple);
+  border-radius: 999px;
+  padding: 2px 8px;
   font-family: var(--font-ui);
-  font-weight: 400;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--color-purple);
+  cursor: pointer;
+  white-space: nowrap;
+  line-height: 1;
+  transition: transform 200ms ease-in, opacity 100ms ease;
 }
 
-.intro-body {
-  margin-top: var(--space-4);
-  font-size: 14px;
-  line-height: 1.7;
-  color: var(--color-mid);
-  max-width: 44ch;
+/* Enter — pill slides in, ease-out, longer */
+.top-bar__search-row:hover .top-bar__search-pill {
+  transform: translateY(-50%) translateX(0);
+  transition: transform 250ms ease-out, opacity 100ms ease;
+}
+
+/* While search is active: pill disappears instantly, stays gone on hover too */
+.top-bar__search-row.is-searching .top-bar__search-pill,
+.top-bar__search-row.is-searching:hover .top-bar__search-pill {
+  opacity: 0;
+  pointer-events: none;
+  transition: none;
+}
+
+/* Text input — bottom edge rests on the line, text sits above it like a baseline */
+.top-bar__search-input {
+  position: absolute;
+  right: 0;
+  bottom: 50%;
+  width: 100%;
+  max-width: 200px;
+  background: none;
+  border: none;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--color-purple);
+  text-align: right;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 150ms ease;
+  outline: none;
+  padding: 0;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.top-bar__search-row.is-searching .top-bar__search-input {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.top-bar__search-input::placeholder {
+  color: var(--color-purple);
+  opacity: 0.45;
+}
+
+.top-bar__search-input::-webkit-search-cancel-button {
+  display: none;
 }
 
 
 /* ==========================================================================
-   NAV MENU
+   ICON — CSS mask-image approach (removes black backgrounds, renders in purple)
+   ========================================================================== */
+
+.icon {
+  display: inline-block;
+  background-color: var(--color-purple);
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+  flex-shrink: 0;
+}
+
+.icon--avatar {
+  width: 60px;
+  height: 60px;
+  flex-shrink: 0;
+  mask-image: url('/icons/My%20avatar.png');
+}
+
+.icon--email {
+  /* Landscape icon — wider than tall; square box, mask-size:contain handles ratio */
+  width: 48px;
+  height: 32px;
+  mask-image: url('/icons/Envelope.png');
+}
+
+.icon--instagram {
+  width: 28px;
+  height: 28px;
+  mask-image: url('/icons/instagram.png');
+}
+
+.icon--search {
+  width: 18px;
+  height: 18px;
+  mask-image: url('/icons/search%20loupe.png');
+}
+
+.icon--filter {
+  width: 18px;
+  height: 18px;
+  mask-image: url('/icons/filter%20eye.png');
+}
+
+
+/* ==========================================================================
+   NAV MENU  (base styles — overrides applied in .top-bar__nav context)
    ========================================================================== */
 
 .nav-menu {
   display: block;
-  margin-top: 0;
   flex-shrink: 0;
 }
 
-/* Border-collapse approach: outer frame top+left; cells provide right+bottom */
 .nav-menu__grid {
   border-top: 1px solid var(--color-text);
   border-left: 1px solid var(--color-text);
@@ -272,7 +492,7 @@ body {
 .nav-menu__link {
   display: flex;
   align-items: stretch;
-  height: 36px;
+  height: calc(90px / 4);
   text-decoration: none;
 }
 
@@ -281,17 +501,16 @@ body {
 .nav-menu__number {
   font-family: var(--font-ui);
   font-size: 10px;
-  width: 32px;
+  width: 24px;
   flex-shrink: 0;
-  position: relative;
   display: flex;
   align-items: flex-start;
   justify-content: flex-start;
-  padding: 4px 0 0 5px;
+  padding: 5px 0 0 4px;
   background-color: var(--color-bg);
   color: var(--color-text);
-  border-right: 1px solid #1A1A1A;
-  border-bottom: 1px solid #1A1A1A;
+  border-right: 1px solid var(--color-text);
+  border-bottom: 1px solid var(--color-text);
   transition: background-color 150ms ease, color 150ms ease;
   user-select: none;
 }
@@ -300,29 +519,25 @@ body {
 
 .nav-menu__label {
   font-family: var(--font-ui);
-  font-size: 13px;
+  font-size: 11px;
   font-style: normal;
   font-weight: 400;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   color: var(--color-text);
-  width: 110px;
+  width: 72px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-end;
+  padding-right: 8px;
   white-space: nowrap;
-  border-right: 1px solid #1A1A1A;
-  border-bottom: 1px solid #1A1A1A;
+  border-right: 1px solid var(--color-text);
+  border-bottom: 1px solid var(--color-text);
   transition: font-style 150ms ease;
 }
 
 /* ── Hover state ── */
-
-.nav-menu__row:hover .nav-menu__number {
-  background-color: #B8281E;
-  color: #fff;
-}
 
 .nav-menu__row:hover .nav-menu__label {
   font-style: italic;
@@ -330,40 +545,51 @@ body {
 
 
 /* ==========================================================================
-   FILTER BAR
+   HERO SECTION
    ========================================================================== */
 
-.filter-bar {
-  max-width: var(--max-width);
-  margin: 0 auto;
-  padding: 0 var(--space-6) var(--space-6);
+.hero-section {
+  border-bottom: 1px solid var(--color-purple);
+  padding: var(--space-6) var(--space-6);
+  text-align: center;
 }
 
-.filter-bar__list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-1) var(--space-4);
+.hero-heading {
+  font-size: clamp(3rem, 14vw, 12rem);
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  color: var(--color-purple);
+  white-space: nowrap;
 }
 
-.filter-bar__btn {
-  font-size: 11px;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: var(--color-mid);
-  padding: 0;
-  text-decoration: none;
-  text-underline-offset: 4px;
-  text-decoration-thickness: 1px;
-  transition: color 200ms var(--ease-default);
+/* "MOON." — MADEMountain */
+.hero-heading__serif {
+  font-family: 'MADEMountain', var(--font-serif);
+  font-style: normal;
+  font-weight: normal;
 }
 
-.filter-bar__btn:hover {
-  color: var(--color-text);
+/* "WTR" — Space Mono lighter */
+.hero-heading__sans {
+  font-family: var(--font-ui);
+  font-weight: 400;
 }
 
-.filter-bar__btn.is-active {
-  color: var(--color-text);
-  text-decoration: underline;
+.hero-tagline {
+  margin-top: 12px;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--color-purple);
+}
+
+
+/* ==========================================================================
+   MAIN
+   ========================================================================== */
+
+.site-main {
+  padding-top: 0;
 }
 
 
@@ -375,8 +601,6 @@ body {
   padding-bottom: var(--space-12);
 }
 
-/* .work-section__heading is visually hidden via .sr-only */
-
 
 /* ==========================================================================
    PROJECT GRID
@@ -384,19 +608,11 @@ body {
 
 .project-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 2px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
   max-width: var(--max-width);
   margin: 0 auto;
-  padding: 0 var(--space-6);
-}
-
-.project-grid__item--wide {
-  grid-column: 1 / -1;
-}
-
-.project-grid__item--wide .project-card__media {
-  aspect-ratio: 5 / 2;
+  padding: var(--space-6) 16px;
 }
 
 .project-grid__empty {
@@ -410,36 +626,105 @@ body {
    PROJECT CARD
    ========================================================================== */
 
+/* ── Magnet wrapper — provides the magnetic background blob ── */
+
+.card-wrapper {
+  position: relative;
+}
+
+.card-magnet-bg {
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  right: -6px;
+  bottom: 0px;
+  border-radius: 40px;
+  background: #4A0080;
+  opacity: 0;
+  z-index: 0;
+  pointer-events: none;
+  /* snap-back transition — overridden to none during active tracking */
+  transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.3s ease;
+}
+
 .project-card {
-  overflow: hidden;
+  position: relative;
+  z-index: 1;
+  /* no overflow here — body sits below the image rectangle */
 }
 
 .project-card__link {
   display: block;
 }
 
-/* ── Media ── */
+/* ── Media — the rounded bordered rectangle ── */
 
 .project-card__media {
+  position: relative;
+  border: 2px solid var(--color-purple);
+  border-radius: 40px;
   overflow: hidden;
-  aspect-ratio: 3 / 2;
+  aspect-ratio: 4 / 3;
+  transition: border-color 300ms ease;
+}
+
+.project-card:hover .project-card__media {
+  border-color: #9B4FDE;
+}
+
+/* Overlay — fades in over the image on hover */
+.project-card__media::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-color: rgba(75, 0, 130, 0.85);
+  opacity: 0;
+  transition: opacity 300ms ease;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.project-card:hover .project-card__media::after {
+  opacity: 1;
 }
 
 .project-card__thumbnail {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 400ms var(--ease-default);
+  object-position: center center;
+  /* No transform — image stays static */
 }
 
-.project-card:hover .project-card__thumbnail {
-  transform: scale(1.03);
+/* Hover title — centered over the image, above the overlay */
+.project-card__hover-title {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, calc(-50% + 8px));
+  z-index: 2;
+  font-family: var(--font-ui);
+  font-size: 24px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #fff;
+  text-align: center;
+  padding: 0 20px;
+  opacity: 0;
+  transition: opacity 300ms ease, transform 300ms ease;
+  pointer-events: none;
 }
 
-/* ── Body ── */
+.project-card:hover .project-card__hover-title {
+  opacity: 1;
+  transform: translate(-50%, -50%);
+}
+
+/* ── Body (below the image) ── */
 
 .project-card__body {
-  padding: var(--space-2) 0 var(--space-6);
+  padding: var(--space-2) 0 var(--space-4);
 }
 
 .project-card__title {
@@ -450,11 +735,6 @@ body {
   letter-spacing: 0.02em;
   color: var(--color-text);
   margin-bottom: 6px;
-  transition: transform 300ms var(--ease-default);
-}
-
-.project-card:hover .project-card__title {
-  transform: translateY(-4px);
 }
 
 /* ── Meta row (tags + year) ── */
@@ -558,19 +838,32 @@ body {
    RESPONSIVE
    ========================================================================== */
 
+@media (max-width: 1024px) {
+  .top-bar__tagline p {
+    font-size: 10px;
+  }
+
+  .top-bar__search {
+    width: 160px;
+  }
+}
+
 @media (max-width: 768px) {
   :root {
     --space-6: 24px;
-    --nav-height: 56px;
   }
 
   .project-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
   }
 
-  /* All cards are full-width on mobile — disable the wide override */
-  .project-grid__item--wide .project-card__media {
-    aspect-ratio: 3 / 2;
+  .top-bar {
+    flex-wrap: wrap;
+  }
+
+  .top-bar__tagline {
+    display: none;
   }
 
   .site-footer__inner {
@@ -585,7 +878,12 @@ body {
     --space-6: 16px;
   }
 
-  .site-nav__list {
-    gap: var(--space-3);
+  .project-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-heading {
+    font-size: clamp(3rem, 20vw, 6rem);
+    white-space: normal;
   }
 }
