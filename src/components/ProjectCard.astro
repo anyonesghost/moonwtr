@@ -11,11 +11,10 @@ const slug = project.id;
 ---
 
 <div class="card-wrapper">
-<div class="card-magnet-bg" aria-hidden="true"></div>
 <article class="project-card" data-featured={featured}>
   <a href={`/work/${slug}/`} class="project-card__link">
 
-    <figure class="project-card__media">
+    <div class="card-mask">
       <img
         src={thumbnail.src}
         alt={`${title} — project thumbnail`}
@@ -23,10 +22,11 @@ const slug = project.id;
         height={thumbnail.height}
         loading="lazy"
         decoding="async"
-        class="project-card__thumbnail"
+        class="card-image"
       />
-      <span class="project-card__hover-title" aria-hidden="true">{title}</span>
-    </figure>
+      <div class="card-overlay" aria-hidden="true"></div>
+      <span class="card-title-overlay" aria-hidden="true">{title}</span>
+    </div>
 
     <div class="project-card__body">
 

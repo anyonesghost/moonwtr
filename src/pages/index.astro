@@ -120,21 +120,21 @@ const projects = allProjects.sort((a, b) => {
     });
   }
 
-  // ── Proximity magnet effect on card backgrounds ───────────────────────────
-  const MAGNET_RADIUS = 200; // px — how close cursor must be to activate
-  const MAGNET_STRENGTH = 0.08; // multiplier on displacement
+  // ── Proximity image drift on cards ───────────────────────────────────────
+  const DRIFT_RADIUS = 400;   // px — starts drifting before mouse is on card
+  const DRIFT_STRENGTH = 0.03; // base multiplier, scaled by proximity
 
   interface CardEntry {
     wrapper: HTMLElement;
-    bg: HTMLElement;
+    img: HTMLElement;
   }
 
   const cardEntries: CardEntry[] = Array.from(
     document.querySelectorAll<HTMLElement>('.card-wrapper')
   ).map(wrapper => ({
     wrapper,
-    bg: wrapper.querySelector<HTMLElement>('.card-magnet-bg')!,
-  })).filter(e => e.bg !== null);
+    img: wrapper.querySelector<HTMLElement>('.card-image')!,
+  })).filter(e => e.img !== null);
 
   let rafId: number | null = null;
   let mouseX = 0;
@@ -143,16 +143,15 @@ const projects = allProjects.sort((a, b) => {
   document.addEventListener('mousemove', (e: MouseEvent) => {
     mouseX = e.clientX;
     mouseY = e.clientY;
-
     if (rafId === null) {
-      rafId = requestAnimationFrame(updateMagnets);
+      rafId = requestAnimationFrame(updateDrift);
     }
   });
 
-  function updateMagnets() {
+  function updateDrift() {
     rafId = null;
 
-    cardEntries.forEach(({ wrapper, bg }) => {
+    cardEntries.forEach(({ wrapper, img }) => {
       const rect = wrapper.getBoundingClientRect();
       const cx = rect.left + rect.width / 2;
       const cy = rect.top + rect.height / 2;
@@ -161,26 +160,26 @@ const projects = allProjects.sort((a, b) => {
       const dy = mouseY - cy;
       const dist = Math.sqrt(dx * dx + dy * dy);
 
-      if (dist < MAGNET_RADIUS) {
-        // Disable CSS transition so tracking feels instant
-        bg.style.transition = 'opacity 0.2s ease';
-        bg.style.opacity = '0.25';
-        bg.style.transform = `translate(${dx * MAGNET_STRENGTH}px, ${dy * MAGNET_STRENGTH}px)`;
+      if (dist < DRIFT_RADIUS) {
+        // Scale strength by proximity: full at center, zero at radius edge
+        const strength = 1 - dist / DRIFT_RADIUS;
+        const driftX = dx * DRIFT_STRENGTH * strength;
+        const driftY = dy * DRIFT_STRENGTH * strength;
+        img.style.transition = 'none';
+        img.style.transform = `translate(calc(-50% + ${driftX}px), calc(-50% + ${driftY}px))`;
       } else {
-        // Re-enable CSS transition for snap-back and fade out
-        bg.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.3s ease';
-        bg.style.opacity = '0';
-        bg.style.transform = 'translate(0, 0)';
+        // Re-enable transition for smooth snap-back to center
+        img.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+        img.style.transform = 'translate(-50%, -50%)';
       }
     });
   }
 
-  // Reset all on mouse leave
+  // Snap all images back when cursor leaves the page
   document.addEventListener('mouseleave', () => {
-    cardEntries.forEach(({ bg }) => {
-      bg.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.3s ease';
-      bg.style.opacity = '0';
-      bg.style.transform = 'translate(0, 0)';
+    cardEntries.forEach(({ img }) => {
+      img.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+      img.style.transform = 'translate(-50%, -50%)';
     });
   });
 </script>
