@@ -134,11 +134,28 @@ body {
 
 .page-frame {
   margin: 20px 40px 0;
-  border-top: 2px solid var(--color-purple);
   border-left: 2px solid var(--color-purple);
   border-right: 2px solid var(--color-purple);
   min-height: 100vh;
   box-sizing: border-box;
+}
+
+/* Sticky block: 20px parchment gap + top border + header + filter strip */
+.sticky-cap {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background-color: var(--color-bg);
+  padding-top: 20px; /* visible parchment gap above the border */
+  margin-top: -20px; /* pull up to align with page-frame top edge */
+}
+
+/* Purple top border rendered AFTER the 20px gap (can't use border-top for this) */
+.sticky-cap::before {
+  content: '';
+  display: block;
+  height: 2px;
+  background-color: var(--color-purple);
 }
 
 
@@ -155,9 +172,6 @@ body {
   height: 90px;
   border-bottom: 2px solid var(--color-purple);
   background-color: var(--color-bg);
-  position: sticky;
-  top: 20px;
-  z-index: 100;
   box-sizing: border-box;
 }
 
@@ -780,9 +794,6 @@ body {
   transition: max-height 300ms ease, border-bottom-color 300ms ease;
   border-bottom: 0px solid var(--color-purple);
   background-color: var(--color-bg);
-  position: sticky;
-  top: calc(20px + 90px); /* header top offset + header height */
-  z-index: 99;
 }
 
 .filter-strip.is-open {
@@ -817,6 +828,10 @@ body {
 
 .filter-strip__tag:first-child {
   border-left: none;
+}
+
+.filter-strip__tag:last-child {
+  border-right: none;
 }
 
 .filter-strip__tag:hover {

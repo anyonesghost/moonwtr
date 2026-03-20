@@ -37,6 +37,8 @@ const {
 
     <div class="page-frame">
 
+      <div class="sticky-cap">
+
       <header class="top-bar" role="banner">
 
         <div class="top-bar__nav">
@@ -106,6 +108,8 @@ const {
         </div>
       </div>
 
+      </div><!-- /.sticky-cap -->
+
       <slot />
 
       <footer class="site-footer" role="contentinfo">
@@ -131,4 +135,74 @@ const {
     </div><!-- /.page-frame -->
 
   </body>
+
+<script>
+  // ── Search row (runs on every page) ─────────────────────────────────────────
+  const searchRow   = document.getElementById('js-search-row');
+  const searchInput = document.getElementById('js-search-input') as HTMLInputElement | null;
+  const gridItems   = document.querySelectorAll<HTMLElement>('.project-grid__item');
+
+  function filterGridByTitle(query: string) {
+    gridItems.forEach(item => {
+      const title = item.querySelector('.project-card__title')?.textContent?.toLowerCase() ?? '';
+      item.hidden = query.length > 0 && !title.includes(query);
+    });
+  }
+
+  if (searchRow && searchInput) {
+    const searchPill = searchRow.querySelector<HTMLButtonElement>('.top-bar__search-pill')!;
+
+    function openSearch() {
+      searchRow!.classList.add('is-searching');
+      searchInput!.focus();
+    }
+
+    function closeSearch() {
+      searchRow!.classList.remove('is-searching');
+      searchInput!.value = '';
+      filterGridByTitle('');
+    }
+
+    searchPill.addEventListener('click', openSearch);
+    searchRow.addEventListener('click', (e) => {
+      if (e.target !== searchInput) openSearch();
+    });
+
+    searchInput.addEventListener('input', () => {
+      filterGridByTitle(searchInput!.value.trim().toLowerCase());
+    });
+
+    searchInput.addEventListener('keydown', (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeSearch();
+    });
+
+    document.addEventListener('click', (e: MouseEvent) => {
+      if (!searchRow.contains(e.target as Node) && searchRow.classList.contains('is-searching')) {
+        closeSearch();
+      }
+    });
+  }
+
+  // ── Tag filter strip (runs on every page, no-ops when no grid) ───────────────
+  const filterBtn   = document.getElementById('js-filter-btn');
+  const filterStrip = document.getElementById('js-filter-strip');
+
+  filterBtn?.addEventListener('click', () => {
+    const isOpen = filterStrip?.classList.toggle('is-open');
+    filterStrip?.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+  });
+
+  filterStrip?.querySelectorAll<HTMLButtonElement>('.filter-strip__tag').forEach(btn => {
+    btn.addEventListener('click', () => {
+      filterStrip!.querySelectorAll('.filter-strip__tag').forEach(b => b.classList.remove('is-active'));
+      btn.classList.add('is-active');
+      const filter = btn.dataset.filter!;
+      gridItems.forEach(item => {
+        const tags = item.dataset.tags ?? '';
+        const visible = filter === 'all' || tags.split(',').includes(filter);
+        item.style.display = visible ? '' : 'none';
+      });
+    });
+  });
+</script>
 </html>
