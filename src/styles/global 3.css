@@ -340,7 +340,7 @@ body {
 .top-bar__search-track {
   flex: 1;
   position: relative;
-  height: 22px;
+  height: 28px;
   cursor: text;
   overflow: hidden; /* clips the pill slide-in animation */
 }
@@ -391,16 +391,17 @@ body {
   transition: none;
 }
 
-/* Text input — bottom edge rests on the line, text sits above it like a baseline */
+/* Text input — vertically centered within the track */
 .top-bar__search-input {
   position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
   right: 0;
-  bottom: 50%;
   width: 100%;
   max-width: 200px;
   background: none;
   border: none;
-  padding-left: 12px;
+  padding: 0 0 0 12px;
   font-family: var(--font-ui);
   font-size: 11px;
   letter-spacing: 0.06em;
@@ -410,7 +411,6 @@ body {
   pointer-events: none;
   transition: opacity 150ms ease;
   outline: none;
-  padding: 0;
   -webkit-appearance: none;
   appearance: none;
 }
