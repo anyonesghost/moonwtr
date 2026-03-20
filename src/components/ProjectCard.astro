@@ -8,12 +8,12 @@ interface Props {
 const { project } = Astro.props;
 const { title, tags, year, thumbnail, featured } = project.data;
 const slug = project.id;
-const base = import.meta.env.BASE_URL;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 ---
 
 <div class="card-wrapper">
 <article class="project-card" data-featured={featured}>
-  <a href={`${base}work/${slug}/`} class="project-card__link">
+  <a href={`${base}/work/${slug}/`} class="project-card__link">
 
     <div class="card-mask">
       <img
