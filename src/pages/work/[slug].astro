@@ -38,8 +38,10 @@ const ctaLabel = getCtaLabel(tags);
           height={thumbnail.height}
           class="project-hero__img"
           decoding="async"
+          id="js-hero-img"
         />
         <div class="project-hero__gradient" aria-hidden="true"></div>
+        <span class="project-hero__expand-hint" aria-hidden="true">[ EXPAND ]</span>
       </div>
       <div class="project-hero__title-wrap">
         <h1 class="project-hero__title">{title}</h1>
@@ -59,6 +61,7 @@ const ctaLabel = getCtaLabel(tags);
 
           <!-- Left: prose -->
           <div class="project-body__prose">
+            {description && <p class="project-body__description">{description}</p>}
             <Content />
           </div>
 
@@ -93,7 +96,6 @@ const ctaLabel = getCtaLabel(tags);
 <script>
   // ── Hero entrance animation ────────────────────────────────────────────────
   const hero = document.querySelector<HTMLElement>('.project-hero');
-  const titleWrap = document.querySelector<HTMLElement>('.project-hero__title-wrap');
 
   if (hero) {
     hero.classList.add('is-entering');
@@ -104,4 +106,47 @@ const ctaLabel = getCtaLabel(tags);
       });
     });
   }
+
+  // ── Lightbox ───────────────────────────────────────────────────────────────
+  const heroImg = document.getElementById('js-hero-img') as HTMLImageElement | null;
+
+  // Build overlay and inject into body
+  const lightbox = document.createElement('div');
+  lightbox.id = 'js-lightbox';
+  lightbox.setAttribute('aria-modal', 'true');
+  lightbox.setAttribute('role', 'dialog');
+  lightbox.setAttribute('aria-label', 'Image lightbox');
+  lightbox.innerHTML = `
+    <button class="lightbox__close" id="js-lightbox-close" aria-label="Close lightbox">✕</button>
+    <img class="lightbox__img" id="js-lightbox-img" alt="" />
+  `;
+  document.body.appendChild(lightbox);
+
+  const lbImg = lightbox.querySelector<HTMLImageElement>('#js-lightbox-img')!;
+  const lbClose = lightbox.querySelector<HTMLButtonElement>('#js-lightbox-close')!;
+
+  function openLightbox() {
+    lbImg.src = heroImg!.src;
+    lbImg.alt = heroImg!.alt;
+    lightbox.classList.add('is-open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeLightbox() {
+    lightbox.classList.remove('is-open');
+    document.body.style.overflow = '';
+  }
+
+  heroImg?.addEventListener('click', openLightbox);
+  lbClose.addEventListener('click', closeLightbox);
+
+  // Click outside image closes
+  lightbox.addEventListener('click', (e) => {
+    if (e.target === lightbox) closeLightbox();
+  });
+
+  // Escape key closes
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && lightbox.classList.contains('is-open')) closeLightbox();
+  });
 </script>

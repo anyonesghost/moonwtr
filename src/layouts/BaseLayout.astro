@@ -83,7 +83,7 @@ const {
             <span class="icon icon--filter" aria-hidden="true"></span>
             <div class="top-bar__search-track">
               <div class="top-bar__search-line"></div>
-              <button class="top-bar__search-pill" aria-label="Filter projects" type="button">
+              <button class="top-bar__search-pill" aria-label="Filter projects" type="button" id="js-filter-btn">
                 FILTER
               </button>
             </div>
@@ -92,6 +92,19 @@ const {
         </div>
 
       </header>
+
+      <!-- ─── Filter strip ──────────────────────────────────────── -->
+      <div class="filter-strip" id="js-filter-strip" aria-hidden="true">
+        <div class="filter-strip__inner">
+          {['ALL', '3D', 'FILM', 'GAME', 'BUILD', 'VIDEO'].map(tag => (
+            <button
+              class={`filter-strip__tag${tag === 'ALL' ? ' is-active' : ''}`}
+              data-filter={tag.toLowerCase()}
+              type="button"
+            >{tag}</button>
+          ))}
+        </div>
+      </div>
 
       <slot />
 

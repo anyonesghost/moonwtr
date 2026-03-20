@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="800" height="600">
+  <defs>
+    <radialGradient id="bglow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#4a1870" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#06040e" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="bgate" cx="50%" cy="40%" r="45%">
+      <stop offset="0%" stop-color="#c8a0f0" stop-opacity="0.25"/>
+      <stop offset="60%" stop-color="#7b2fbe" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#06040e" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="800" height="600" fill="#06040e"/>
+  <!-- Gate glow -->
+  <ellipse cx="400" cy="280" rx="180" ry="220" fill="url(#bglow)"/>
+  <ellipse cx="400" cy="280" rx="100" ry="140" fill="url(#bgate)"/>
+  <!-- Gate arch left pillar -->
+  <rect x="310" y="180" width="22" height="300" fill="#1a0e2e" rx="4"/>
+  <!-- Gate arch right pillar -->
+  <rect x="468" y="180" width="22" height="300" fill="#1a0e2e" rx="4"/>
+  <!-- Gate arch top -->
+  <path d="M310,200 Q400,80 490,200" stroke="#3d1860" stroke-width="22" fill="none" stroke-linecap="round"/>
+  <!-- Gate arch inner glow -->
+  <path d="M320,202 Q400,95 480,202" stroke="#7b2fbe" stroke-width="3" fill="none" opacity="0.5"/>
+  <!-- Gate center light -->
+  <ellipse cx="400" cy="340" rx="60" ry="90" fill="#c8a0f0" opacity="0.04"/>
+  <!-- Ground -->
+  <rect y="480" width="800" height="120" fill="#06040e"/>
+  <!-- Path stones -->
+  <ellipse cx="400" cy="520" rx="18" ry="6" fill="#1a0e2e" opacity="0.8"/>
+  <ellipse cx="400" cy="490" rx="14" ry="5" fill="#1a0e2e" opacity="0.6"/>
+  <ellipse cx="400" cy="464" rx="10" ry="4" fill="#1a0e2e" opacity="0.4"/>
+  <!-- Flowers left -->
+  <circle cx="270" cy="470" r="4" fill="#9b4fde" opacity="0.7"/>
+  <circle cx="255" cy="460" r="3" fill="#7b2fbe" opacity="0.5"/>
+  <circle cx="285" cy="452" r="3.5" fill="#c8a0f0" opacity="0.4"/>
+  <line x1="270" y1="470" x2="268" y2="490" stroke="#1a2e18" stroke-width="1.5"/>
+  <circle cx="240" cy="478" r="3" fill="#9b4fde" opacity="0.6"/>
+  <circle cx="300" cy="462" r="2.5" fill="#7b2fbe" opacity="0.45"/>
+  <!-- Flowers right -->
+  <circle cx="530" cy="470" r="4" fill="#9b4fde" opacity="0.7"/>
+  <circle cx="545" cy="460" r="3" fill="#7b2fbe" opacity="0.5"/>
+  <circle cx="515" cy="452" r="3.5" fill="#c8a0f0" opacity="0.4"/>
+  <line x1="530" y1="470" x2="532" y2="490" stroke="#1a2e18" stroke-width="1.5"/>
+  <circle cx="560" cy="478" r="3" fill="#9b4fde" opacity="0.6"/>
+  <!-- Vines -->
+  <path d="M310,180 Q295,220 305,260 Q315,300 300,340" stroke="#1a2e18" stroke-width="2" fill="none" opacity="0.6"/>
+  <path d="M490,180 Q505,220 495,260 Q485,300 500,340" stroke="#1a2e18" stroke-width="2" fill="none" opacity="0.6"/>
+  <!-- Stars -->
+  <circle cx="200" cy="80" r="1" fill="#c8a0f0" opacity="0.5"/>
+  <circle cx="600" cy="60" r="1.2" fill="#c8a0f0" opacity="0.4"/>
+  <circle cx="700" cy="120" r="0.8" fill="#c8a0f0" opacity="0.5"/>
+  <circle cx="100" cy="100" r="1" fill="#c8a0f0" opacity="0.4"/>
+</svg>

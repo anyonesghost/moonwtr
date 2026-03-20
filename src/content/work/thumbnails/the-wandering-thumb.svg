@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="800" height="600">
+  <defs>
+    <radialGradient id="wsky" cx="50%" cy="35%" r="60%">
+      <stop offset="0%" stop-color="#2a1a3e"/>
+      <stop offset="100%" stop-color="#080810"/>
+    </radialGradient>
+    <linearGradient id="wmist" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0d0918" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#1a1030" stop-opacity="0.7"/>
+    </linearGradient>
+  </defs>
+  <!-- Sky -->
+  <rect width="800" height="600" fill="url(#wsky)"/>
+  <!-- Moon -->
+  <circle cx="400" cy="180" r="48" fill="#e8e0f0" opacity="0.12"/>
+  <circle cx="400" cy="180" r="36" fill="#f0ecf8" opacity="0.08"/>
+  <!-- Stars -->
+  <circle cx="150" cy="80" r="1.2" fill="#d0c8e8" opacity="0.6"/>
+  <circle cx="280" cy="55" r="0.8" fill="#d0c8e8" opacity="0.5"/>
+  <circle cx="520" cy="70" r="1" fill="#d0c8e8" opacity="0.55"/>
+  <circle cx="650" cy="95" r="1.4" fill="#d0c8e8" opacity="0.4"/>
+  <circle cx="700" cy="45" r="0.9" fill="#d0c8e8" opacity="0.5"/>
+  <circle cx="90" cy="140" r="1" fill="#d0c8e8" opacity="0.4"/>
+  <circle cx="330" cy="30" r="0.7" fill="#d0c8e8" opacity="0.6"/>
+  <!-- Ground fog -->
+  <ellipse cx="400" cy="500" rx="500" ry="80" fill="#2a1a3e" opacity="0.4"/>
+  <ellipse cx="400" cy="520" rx="600" ry="60" fill="#1a0e2a" opacity="0.5"/>
+  <!-- Tree silhouettes — distant right -->
+  <polygon points="680,460 695,320 710,460" fill="#0a0614"/>
+  <polygon points="720,460 738,290 756,460" fill="#0c0818"/>
+  <polygon points="755,460 770,340 785,460" fill="#0a0614"/>
+  <!-- Tree silhouettes — mid -->
+  <polygon points="540,460 558,270 576,460" fill="#0d0a1a"/>
+  <polygon points="580,460 595,310 612,460" fill="#0a0614"/>
+  <!-- Tree silhouettes — left cluster -->
+  <polygon points="40,460 58,280 76,460" fill="#0c0818"/>
+  <polygon points="75,460 90,300 108,460" fill="#0a0614"/>
+  <polygon points="100,460 118,260 136,460" fill="#0d0a1a"/>
+  <polygon points="130,460 145,320 162,460" fill="#0a0614"/>
+  <!-- Tree silhouettes — near left -->
+  <polygon points="170,480 192,200 216,480" fill="#09060f"/>
+  <polygon points="200,480 222,240 246,480" fill="#0a0712"/>
+  <!-- Tree silhouettes — near right -->
+  <polygon points="600,480 622,220 644,480" fill="#09060f"/>
+  <polygon points="630,480 648,260 668,480" fill="#0a0712"/>
+  <!-- Path through center -->
+  <path d="M360,600 Q380,500 395,440 Q400,420 405,440 Q420,500 440,600" fill="#1a1028" opacity="0.8"/>
+  <!-- Mist overlay -->
+  <rect width="800" height="600" fill="url(#wmist)"/>
+  <!-- Ground -->
+  <rect y="460" width="800" height="140" fill="#09060f"/>
+</svg>

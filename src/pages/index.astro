@@ -111,14 +111,28 @@ const projects = allProjects.sort((a, b) => {
     });
   }
 
-  // ── Filter row ───────────────────────────────────────────────────────────────
-  const filterRow = document.getElementById('js-filter-row');
-  if (filterRow) {
-    const filterPill = filterRow.querySelector<HTMLButtonElement>('.top-bar__search-pill')!;
-    filterPill?.addEventListener('click', () => {
-      console.log('Filter clicked — interaction coming soon');
+  // ── Tag filter strip ────────────────────────────────────────────────────────
+  const filterBtn = document.getElementById('js-filter-btn');
+  const filterStrip = document.getElementById('js-filter-strip');
+
+  filterBtn?.addEventListener('click', () => {
+    const isOpen = filterStrip?.classList.toggle('is-open');
+    filterStrip?.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+  });
+
+  filterStrip?.querySelectorAll<HTMLButtonElement>('.filter-strip__tag').forEach(btn => {
+    btn.addEventListener('click', () => {
+      filterStrip.querySelectorAll('.filter-strip__tag').forEach(b => b.classList.remove('is-active'));
+      btn.classList.add('is-active');
+
+      const filter = btn.dataset.filter!;
+      gridItems.forEach(item => {
+        const tags = item.dataset.tags ?? '';
+        const visible = filter === 'all' || tags.split(',').includes(filter);
+        item.style.display = visible ? '' : 'none';
+      });
     });
-  }
+  });
 
   // ── Proximity image drift on cards ───────────────────────────────────────
   const DRIFT_RADIUS = 400;   // px — starts drifting before mouse is on card

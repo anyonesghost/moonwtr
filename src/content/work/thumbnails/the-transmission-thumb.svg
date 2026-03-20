@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="800" height="600">
+  <defs>
+    <radialGradient id="tglow" cx="50%" cy="58%" r="45%">
+      <stop offset="0%" stop-color="#7b2fbe" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#05030c" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="800" height="600" fill="#05030c"/>
+  <!-- Signal rings — concentric arcs radiating upward -->
+  <path d="M400,350 Q400,240 500,200" stroke="#3d1060" stroke-width="1" fill="none" opacity="0.3"/>
+  <path d="M400,350 Q400,180 560,120" stroke="#3d1060" stroke-width="1" fill="none" opacity="0.25"/>
+
+  <!-- Wide signal arcs left -->
+  <path d="M400,350 Q330,310 290,260" stroke="#5a2090" stroke-width="1.5" fill="none" opacity="0.4" stroke-dasharray="4,8"/>
+  <path d="M400,350 Q280,290 220,200" stroke="#5a2090" stroke-width="1" fill="none" opacity="0.3" stroke-dasharray="3,10"/>
+  <path d="M400,350 Q230,270 150,140" stroke="#3d1060" stroke-width="1" fill="none" opacity="0.2" stroke-dasharray="2,12"/>
+
+  <!-- Wide signal arcs right -->
+  <path d="M400,350 Q470,310 510,260" stroke="#5a2090" stroke-width="1.5" fill="none" opacity="0.4" stroke-dasharray="4,8"/>
+  <path d="M400,350 Q520,290 580,200" stroke="#5a2090" stroke-width="1" fill="none" opacity="0.3" stroke-dasharray="3,10"/>
+  <path d="M400,350 Q570,270 650,140" stroke="#3d1060" stroke-width="1" fill="none" opacity="0.2" stroke-dasharray="2,12"/>
+
+  <!-- Tower structure -->
+  <line x1="400" y1="350" x2="400" y2="480" stroke="#1a0e2e" stroke-width="4"/>
+  <line x1="370" y1="480" x2="430" y2="480" stroke="#1a0e2e" stroke-width="6"/>
+  <!-- Tower cross braces -->
+  <line x1="388" y1="390" x2="380" y2="420" stroke="#1a0e2e" stroke-width="2"/>
+  <line x1="412" y1="390" x2="420" y2="420" stroke="#1a0e2e" stroke-width="2"/>
+  <line x1="382" y1="420" x2="374" y2="450" stroke="#1a0e2e" stroke-width="2"/>
+  <line x1="418" y1="420" x2="426" y2="450" stroke="#1a0e2e" stroke-width="2"/>
+  <!-- Tower tip antenna -->
+  <line x1="400" y1="350" x2="400" y2="300" stroke="#2a1848" stroke-width="2"/>
+  <line x1="400" y1="300" x2="400" y2="260" stroke="#3d2460" stroke-width="1.5"/>
+
+  <!-- Transmission pulse — bright node at tip -->
+  <circle cx="400" cy="258" r="5" fill="#9b4fde" opacity="0.9"/>
+  <circle cx="400" cy="258" r="10" fill="#7b2fbe" opacity="0.3"/>
+  <circle cx="400" cy="258" r="18" fill="#5a2090" opacity="0.15"/>
+
+  <!-- Glow beneath -->
+  <ellipse cx="400" cy="350" rx="200" ry="80" fill="url(#tglow)"/>
+
+  <!-- Ground -->
+  <rect y="480" width="800" height="120" fill="#05030c"/>
+  <ellipse cx="400" cy="482" rx="120" ry="8" fill="#0f0820" opacity="0.8"/>
+
+  <!-- Stars / distant receivers -->
+  <circle cx="120" cy="90" r="2" fill="#c8a0f0" opacity="0.6"/>
+  <circle cx="680" cy="70" r="2.5" fill="#c8a0f0" opacity="0.5"/>
+  <circle cx="650" cy="160" r="1.5" fill="#c8a0f0" opacity="0.4"/>
+  <circle cx="150" cy="180" r="1.5" fill="#c8a0f0" opacity="0.4"/>
+  <circle cx="700" cy="240" r="1.2" fill="#c8a0f0" opacity="0.35"/>
+  <circle cx="95" cy="250" r="1.2" fill="#c8a0f0" opacity="0.35"/>
+
+  <!-- Signal reception lines to stars -->
+  <line x1="400" y1="258" x2="120" y2="90" stroke="#5a2090" stroke-width="0.5" opacity="0.2" stroke-dasharray="2,14"/>
+  <line x1="400" y1="258" x2="680" y2="70" stroke="#5a2090" stroke-width="0.5" opacity="0.2" stroke-dasharray="2,14"/>
+</svg>

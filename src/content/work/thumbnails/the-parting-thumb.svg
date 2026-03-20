@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="800" height="600">
+  <defs>
+    <linearGradient id="psky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0a0618"/>
+      <stop offset="60%" stop-color="#1a0e30"/>
+      <stop offset="100%" stop-color="#0e0820"/>
+    </linearGradient>
+    <radialGradient id="phorizon" cx="50%" cy="72%" r="40%">
+      <stop offset="0%" stop-color="#3d1060" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#0a0618" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <!-- Sky -->
+  <rect width="800" height="600" fill="url(#psky)"/>
+  <!-- Horizon glow -->
+  <ellipse cx="400" cy="430" rx="500" ry="100" fill="url(#phorizon)"/>
+  <!-- Moon — low on horizon -->
+  <circle cx="400" cy="410" r="55" fill="#1a0e30"/>
+  <circle cx="400" cy="410" r="52" fill="#f0ecf8" opacity="0.06"/>
+  <circle cx="400" cy="410" r="38" fill="#e8e0f0" opacity="0.05"/>
+  <!-- Dense forest left wall -->
+  <polygon points="0,600 0,260 30,380 60,240 90,360 120,220 150,350 180,230 210,360 240,250 270,380 300,270 330,400 330,600" fill="#07040f"/>
+  <!-- Dense forest right wall -->
+  <polygon points="800,600 800,260 770,380 740,240 710,360 680,220 650,350 620,230 590,360 560,250 530,380 500,270 470,400 470,600" fill="#07040f"/>
+  <!-- Path through center — perspective -->
+  <path d="M320,600 Q360,520 385,460 Q398,430 400,420 Q402,430 415,460 Q440,520 480,600 Z" fill="#150e28" opacity="0.9"/>
+  <!-- Path edge definition -->
+  <path d="M325,600 Q365,520 388,460 Q399,432 400,422" stroke="#2a1848" stroke-width="1.5" fill="none" opacity="0.6"/>
+  <path d="M475,600 Q435,520 412,460 Q401,432 400,422" stroke="#2a1848" stroke-width="1.5" fill="none" opacity="0.6"/>
+  <!-- Figure silhouette at threshold -->
+  <ellipse cx="400" cy="408" rx="7" ry="9" fill="#07040f"/>
+  <rect x="396" y="415" width="8" height="20" rx="2" fill="#07040f"/>
+  <!-- Figure faint glow from moon behind -->
+  <ellipse cx="400" cy="415" rx="12" ry="18" fill="#c8a0f0" opacity="0.04"/>
+  <!-- Ground plane -->
+  <rect y="520" width="800" height="80" fill="#07040f"/>
+  <!-- Roots/debris at forest edge -->
+  <path d="M320,500 Q310,490 295,495 Q310,485 330,490" stroke="#0d0818" stroke-width="2" fill="none"/>
+  <path d="M480,500 Q490,490 505,495 Q490,485 470,490" stroke="#0d0818" stroke-width="2" fill="none"/>
+  <!-- Stars visible through the gap -->
+  <circle cx="380" cy="180" r="0.8" fill="#c8a0f0" opacity="0.6"/>
+  <circle cx="400" cy="120" r="1" fill="#c8a0f0" opacity="0.5"/>
+  <circle cx="420" cy="170" r="0.7" fill="#c8a0f0" opacity="0.5"/>
+  <circle cx="395" cy="220" r="0.6" fill="#c8a0f0" opacity="0.4"/>
+  <circle cx="408" cy="250" r="0.6" fill="#c8a0f0" opacity="0.35"/>
+</svg>
