@@ -966,9 +966,9 @@ body {
 }
 
 .project-hero__title {
-  font-family: var(--font-ui);
+  font-family: 'Poppins', var(--font-serif);
   font-size: clamp(48px, 8vw, 120px);
-  font-weight: 700;
+  font-weight: 900;
   color: #fff;
   line-height: 0.9;
   margin: 0;
