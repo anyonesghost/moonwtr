@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="800" height="600">
+  <defs>
+    <radialGradient id="wglow" cx="50%" cy="45%" r="35%">
+      <stop offset="0%" stop-color="#2a0a40" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#04020a" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="weye" cx="50%" cy="45%" r="12%">
+      <stop offset="0%" stop-color="#c8a0f0" stop-opacity="0.5"/>
+      <stop offset="50%" stop-color="#7b2fbe" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#04020a" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <!-- Void background -->
+  <rect width="800" height="600" fill="#04020a"/>
+  <!-- Dense forest left wall — impenetrable -->
+  <rect x="0" y="0" width="240" height="600" fill="#060310"/>
+  <!-- Dense forest right wall -->
+  <rect x="560" y="0" width="240" height="600" fill="#060310"/>
+  <!-- Forest texture left — layered tree trunks -->
+  <rect x="18"  y="0" width="9"  height="600" fill="#04020a" opacity="0.6"/>
+  <rect x="42"  y="0" width="7"  height="600" fill="#04020a" opacity="0.5"/>
+  <rect x="70"  y="0" width="11" height="600" fill="#04020a" opacity="0.7"/>
+  <rect x="100" y="0" width="8"  height="600" fill="#04020a" opacity="0.5"/>
+  <rect x="130" y="0" width="10" height="600" fill="#04020a" opacity="0.6"/>
+  <rect x="162" y="0" width="7"  height="600" fill="#04020a" opacity="0.5"/>
+  <rect x="190" y="0" width="12" height="600" fill="#04020a" opacity="0.7"/>
+  <rect x="218" y="0" width="8"  height="600" fill="#04020a" opacity="0.5"/>
+  <!-- Forest texture right -->
+  <rect x="582" y="0" width="9"  height="600" fill="#04020a" opacity="0.6"/>
+  <rect x="608" y="0" width="7"  height="600" fill="#04020a" opacity="0.5"/>
+  <rect x="636" y="0" width="11" height="600" fill="#04020a" opacity="0.7"/>
+  <rect x="662" y="0" width="8"  height="600" fill="#04020a" opacity="0.5"/>
+  <rect x="690" y="0" width="10" height="600" fill="#04020a" opacity="0.6"/>
+  <rect x="718" y="0" width="7"  height="600" fill="#04020a" opacity="0.5"/>
+  <rect x="746" y="0" width="12" height="600" fill="#04020a" opacity="0.7"/>
+  <rect x="774" y="0" width="8"  height="600" fill="#04020a" opacity="0.5"/>
+  <!-- Center void — the gap in the trees -->
+  <rect x="240" y="0" width="320" height="600" fill="#04020a"/>
+  <!-- Something there — ambient glow -->
+  <ellipse cx="400" cy="270" rx="160" ry="140" fill="url(#wglow)"/>
+  <!-- The eye — barely visible form -->
+  <ellipse cx="400" cy="270" rx="56" ry="32" fill="url(#weye)"/>
+  <!-- Iris suggestion -->
+  <ellipse cx="400" cy="270" rx="28" ry="16" stroke="#3d1060" stroke-width="1" fill="none" opacity="0.5"/>
+  <ellipse cx="400" cy="270" rx="12" ry="7" fill="#1a0830" opacity="0.9"/>
+  <ellipse cx="400" cy="270" rx="5" ry="3" fill="#c8a0f0" opacity="0.15"/>
+  <!-- Ground fog cutting across -->
+  <ellipse cx="400" cy="520" rx="440" ry="55" fill="#0a0618" opacity="0.9"/>
+  <ellipse cx="400" cy="540" rx="500" ry="50" fill="#04020a" opacity="0.8"/>
+  <!-- Ground -->
+  <rect y="560" width="800" height="40" fill="#04020a"/>
+  <!-- Subtle light from above — like moonlight through a gap -->
+  <path d="M340,0 L360,260 L440,260 L460,0 Z" fill="#c8a0f0" opacity="0.012"/>
+  <!-- Stars — only visible in the gap -->
+  <circle cx="390" cy="60" r="0.8" fill="#c8a0f0" opacity="0.5"/>
+  <circle cx="415" cy="40" r="0.6" fill="#c8a0f0" opacity="0.4"/>
+  <circle cx="372" cy="80" r="0.7" fill="#c8a0f0" opacity="0.4"/>
+  <circle cx="428" cy="100" r="0.5" fill="#c8a0f0" opacity="0.35"/>
+  <circle cx="400" cy="120" r="0.6" fill="#c8a0f0" opacity="0.3"/>
+</svg>
