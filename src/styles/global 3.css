@@ -326,6 +326,7 @@ body {
   flex: 1;
   position: relative;
   height: 22px;
+  cursor: text;
 }
 
 /* The always-visible purple line */

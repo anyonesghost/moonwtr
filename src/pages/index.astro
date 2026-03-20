@@ -95,6 +95,9 @@ const projects = allProjects.sort((a, b) => {
     }
 
     searchPill.addEventListener('click', openSearch);
+    searchRow.addEventListener('click', (e) => {
+      if (e.target !== searchInput) openSearch();
+    });
 
     searchInput.addEventListener('input', () => {
       filterGridByTitle(searchInput!.value.trim().toLowerCase());
