@@ -1,4 +1,5 @@
 ---
+import { getCollection } from 'astro:content';
 import NavMenu from '../components/NavMenu.astro';
 import '../styles/global 3.css';
 
@@ -11,6 +12,16 @@ const {
   title = 'Portfolio — Selected Work',
   description = 'Creative portfolio — selected work in branding, editorial, and motion.',
 } = Astro.props;
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const allProjects = await getCollection('work');
+const projectsData = allProjects.map(p => ({
+  title: p.data.title,
+  tags: p.data.tags,
+  thumbnail: p.data.thumbnail.src,
+  href: `${base}/work/${p.id}/`,
+}));
+const projectsJson = JSON.stringify(projectsData);
 ---
 
 <!doctype html>
@@ -62,7 +73,7 @@ const {
           <p>Just a man from Ohio making motion, music,<br/>games, worlds, and machines.</p>
         </div>
 
-        <div class="top-bar__search">
+        <div class="top-bar__search" data-projects={projectsJson}>
 
           <div class="top-bar__search-row" id="js-search-row">
             <span class="icon icon--search" aria-hidden="true"></span>
@@ -89,6 +100,11 @@ const {
                 FILTER
               </button>
             </div>
+          </div>
+
+          <!-- Search dropdown -->
+          <div class="search-dropdown" id="js-search-dropdown" role="listbox" aria-label="Search results">
+            <ul class="search-dropdown__list" id="js-search-results"></ul>
           </div>
 
         </div>
@@ -137,11 +153,25 @@ const {
   </body>
 
 <script>
-  // ── Search row (runs on every page) ─────────────────────────────────────────
-  const searchRow   = document.getElementById('js-search-row');
-  const searchInput = document.getElementById('js-search-input') as HTMLInputElement | null;
-  const gridItems   = document.querySelectorAll<HTMLElement>('.project-grid__item');
+  // ── Project data (embedded at build time) ────────────────────────────────────
+  interface ProjectEntry {
+    title: string;
+    tags: string[];
+    thumbnail: string;
+    href: string;
+  }
 
+  const searchContainer = document.querySelector<HTMLElement>('.top-bar__search');
+  const projects: ProjectEntry[] = JSON.parse(searchContainer?.dataset.projects ?? '[]');
+
+  // ── DOM refs ─────────────────────────────────────────────────────────────────
+  const searchRow      = document.getElementById('js-search-row');
+  const searchInput    = document.getElementById('js-search-input') as HTMLInputElement | null;
+  const searchDropdown = document.getElementById('js-search-dropdown');
+  const searchResults  = document.getElementById('js-search-results');
+  const gridItems      = document.querySelectorAll<HTMLElement>('.project-grid__item');
+
+  // ── Grid filter (homepage only — no-ops when grid absent) ────────────────────
   function filterGridByTitle(query: string) {
     gridItems.forEach(item => {
       const title = item.querySelector('.project-card__title')?.textContent?.toLowerCase() ?? '';
@@ -149,6 +179,48 @@ const {
     });
   }
 
+  // ── Dropdown ─────────────────────────────────────────────────────────────────
+  function showDropdown(query: string) {
+    if (!searchDropdown || !searchResults) return;
+
+    if (query.length === 0) {
+      hideDropdown();
+      return;
+    }
+
+    const matches = projects
+      .filter(p => {
+        const q = query.toLowerCase();
+        return p.title.toLowerCase().includes(q) || p.tags.some(t => t.toLowerCase().includes(q));
+      })
+      .slice(0, 5);
+
+    if (matches.length === 0) {
+      hideDropdown();
+      return;
+    }
+
+    searchResults.innerHTML = matches.map(p => `
+      <li>
+        <a class="search-dropdown__item" href="${p.href}">
+          <img class="search-dropdown__thumb" src="${p.thumbnail}" alt="" width="40" height="40" />
+          <div class="search-dropdown__info">
+            <span class="search-dropdown__title">${p.title}</span>
+            <span class="search-dropdown__tags">${p.tags.join(', ')}</span>
+          </div>
+        </a>
+      </li>
+    `).join('');
+
+    searchDropdown.classList.add('is-visible');
+  }
+
+  function hideDropdown() {
+    searchDropdown?.classList.remove('is-visible');
+    if (searchResults) searchResults.innerHTML = '';
+  }
+
+  // ── Search row interaction ────────────────────────────────────────────────────
   if (searchRow && searchInput) {
     const searchPill = searchRow.querySelector<HTMLButtonElement>('.top-bar__search-pill')!;
 
@@ -161,6 +233,7 @@ const {
       searchRow!.classList.remove('is-searching');
       searchInput!.value = '';
       filterGridByTitle('');
+      hideDropdown();
     }
 
     searchPill.addEventListener('click', openSearch);
@@ -169,7 +242,9 @@ const {
     });
 
     searchInput.addEventListener('input', () => {
-      filterGridByTitle(searchInput!.value.trim().toLowerCase());
+      const query = searchInput!.value.trim().toLowerCase();
+      filterGridByTitle(query);
+      showDropdown(query);
     });
 
     searchInput.addEventListener('keydown', (e: KeyboardEvent) => {
@@ -177,8 +252,12 @@ const {
     });
 
     document.addEventListener('click', (e: MouseEvent) => {
-      if (!searchRow.contains(e.target as Node) && searchRow.classList.contains('is-searching')) {
-        closeSearch();
+      const target = e.target as Node;
+      const outsideSearch = !searchRow.contains(target);
+      const outsideDropdown = !searchDropdown?.contains(target);
+      if (outsideSearch && outsideDropdown) {
+        if (searchRow.classList.contains('is-searching')) closeSearch();
+        else hideDropdown();
       }
     });
   }
