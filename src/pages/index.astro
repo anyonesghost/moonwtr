@@ -138,20 +138,22 @@ const projects = allProjects.sort((a, b) => {
   });
 
   // ── Proximity image drift on cards ───────────────────────────────────────
-  const DRIFT_RADIUS = 400;   // px — starts drifting before mouse is on card
-  const DRIFT_STRENGTH = 0.08; // base multiplier, scaled by proximity
+  // Drift targets .card-image-wrap (translation only).
+  // .card-image handles counter-rotation via CSS independently.
+  const DRIFT_RADIUS = 400;
+  const DRIFT_STRENGTH = 0.08;
 
   interface CardEntry {
     wrapper: HTMLElement;
-    img: HTMLElement;
+    wrap: HTMLElement; // .card-image-wrap — JS target for drift
   }
 
-  const cardEntries: CardEntry[] = Array.from(
-    document.querySelectorAll<HTMLElement>('.card-wrapper')
-  ).map(wrapper => ({
+  const allWrappers = Array.from(document.querySelectorAll<HTMLElement>('.card-wrapper'));
+
+  const cardEntries: CardEntry[] = allWrappers.map(wrapper => ({
     wrapper,
-    img: wrapper.querySelector<HTMLElement>('.card-image')!,
-  })).filter(e => e.img !== null);
+    wrap: wrapper.querySelector<HTMLElement>('.card-image-wrap')!,
+  })).filter(e => e.wrap !== null);
 
   let rafId: number | null = null;
   let mouseX = 0;
@@ -168,7 +170,7 @@ const projects = allProjects.sort((a, b) => {
   function updateDrift() {
     rafId = null;
 
-    cardEntries.forEach(({ wrapper, img }) => {
+    cardEntries.forEach(({ wrapper, wrap }) => {
       const rect = wrapper.getBoundingClientRect();
       const cx = rect.left + rect.width / 2;
       const cy = rect.top + rect.height / 2;
@@ -178,25 +180,84 @@ const projects = allProjects.sort((a, b) => {
       const dist = Math.sqrt(dx * dx + dy * dy);
 
       if (dist < DRIFT_RADIUS) {
-        // Scale strength by proximity: full at center, zero at radius edge
         const strength = 1 - dist / DRIFT_RADIUS;
         const driftX = dx * DRIFT_STRENGTH * strength;
         const driftY = dy * DRIFT_STRENGTH * strength;
-        img.style.transition = 'none';
-        img.style.transform = `translate(calc(-50% + ${driftX}px), calc(-50% + ${driftY}px))`;
+        wrap.style.transition = 'none';
+        wrap.style.transform = `translate(calc(-50% + ${driftX}px), calc(-50% + ${driftY}px))`;
       } else {
-        // Re-enable transition for smooth snap-back to center
-        img.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
-        img.style.transform = 'translate(-50%, -50%)';
+        wrap.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+        wrap.style.transform = 'translate(-50%, -50%)';
       }
     });
   }
 
-  // Snap all images back when cursor leaves the page
   document.addEventListener('mouseleave', () => {
-    cardEntries.forEach(({ img }) => {
-      img.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
-      img.style.transform = 'translate(-50%, -50%)';
+    cardEntries.forEach(({ wrap }) => {
+      wrap.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+      wrap.style.transform = 'translate(-50%, -50%)';
+    });
+  });
+
+  // ── Neighbor spring physics ───────────────────────────────────────────────
+  const neighborTimeouts = new Map<HTMLElement, ReturnType<typeof setTimeout>[]>();
+
+  allWrappers.forEach(wrapper => {
+    wrapper.addEventListener('mouseenter', () => {
+      const hovRect = wrapper.getBoundingClientRect();
+      const hovCx = hovRect.left + hovRect.width / 2;
+      const hovCy = hovRect.top + hovRect.height / 2;
+
+      allWrappers.forEach(other => {
+        if (other === wrapper) return;
+
+        // Clear any in-flight timeouts for this neighbor
+        (neighborTimeouts.get(other) ?? []).forEach(clearTimeout);
+
+        const oRect = other.getBoundingClientRect();
+        const oCx = oRect.left + oRect.width / 2;
+        const oCy = oRect.top + oRect.height / 2;
+
+        const dx = oCx - hovCx;
+        const dy = oCy - hovCy;
+        const pixelDist = Math.sqrt(dx * dx + dy * dy);
+        const nx = dx / pixelDist;
+        const ny = dy / pixelDist;
+
+        // Grid distance: pixel distance / card width ≈ number of columns away
+        const gridDist = pixelDist / hovRect.width;
+        const strength = 1 / (gridDist + 1);
+        const push = 18 * strength;
+        const overshoot = -6 * strength;
+
+        // Phase 1 (0ms): push away
+        other.style.transition = 'transform 150ms ease-out';
+        other.style.transform = `translate(${nx * push}px, ${ny * push}px)`;
+
+        // Phase 2 (150ms): overshoot back past zero
+        const t1 = setTimeout(() => {
+          other.style.transition = 'transform 200ms ease-out';
+          other.style.transform = `translate(${nx * overshoot}px, ${ny * overshoot}px)`;
+        }, 150);
+
+        // Phase 3 (350ms): settle to rest
+        const t2 = setTimeout(() => {
+          other.style.transition = 'transform 150ms ease-in-out';
+          other.style.transform = 'translate(0, 0)';
+        }, 350);
+
+        neighborTimeouts.set(other, [t1, t2]);
+      });
+    });
+
+    wrapper.addEventListener('mouseleave', () => {
+      allWrappers.forEach(other => {
+        if (other === wrapper) return;
+        (neighborTimeouts.get(other) ?? []).forEach(clearTimeout);
+        neighborTimeouts.delete(other);
+        other.style.transition = 'transform 200ms ease';
+        other.style.transform = 'translate(0, 0)';
+      });
     });
   });
 </script>
