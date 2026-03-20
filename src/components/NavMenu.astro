@@ -1,10 +1,11 @@
 ---
+const base = import.meta.env.BASE_URL; // '/moonwtr/'
 const items = [
-  { number: '01', label: 'Work',    href: '/' },
-  { number: '02', label: 'About',   href: '/about/' },
-  { number: '03', label: 'Depths',  href: '/depths/' },
-  { number: '04', label: 'Contact', href: '/contact/' },
-] as const;
+  { number: '01', label: 'Work',    href: base },
+  { number: '02', label: 'About',   href: `${base}about/` },
+  { number: '03', label: 'Depths',  href: `${base}depths/` },
+  { number: '04', label: 'Contact', href: `${base}contact/` },
+];
 ---
 
 <nav class="nav-menu" aria-label="Site sections">
