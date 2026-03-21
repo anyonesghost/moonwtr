@@ -191,12 +191,7 @@ const projects = allProjects.sort((a, b) => {
   });
 
   // ── SVG clipPath morphing ─────────────────────────────────────────────────
-  declare const flubber: {
-    interpolate(a: string, b: string, opts?: object): (t: number) => string;
-  };
-
-  // DEBUG 2: confirm flubber loaded
-  console.log('[morph] typeof flubber:', typeof flubber);
+  import { interpolate as flubberInterpolate } from 'flubber';
 
   // Tokenize an SVG path and divide every numeric value by 600,
   // normalising 600×600 coordinates to objectBoundingBox (0–1) space.
@@ -248,11 +243,10 @@ const projects = allProjects.sort((a, b) => {
   }
 
   function morphTo(card: MorphCard, target: string, duration: number) {
-    if (typeof flubber === 'undefined') return;
     if (card.rafId !== null) cancelAnimationFrame(card.rafId);
 
     const from = card.current;
-    const interp = flubber.interpolate(from, target, { maxSegmentLength: 4 });
+    const interp = flubberInterpolate(from, target, { maxSegmentLength: 4 });
     const start = performance.now();
 
     function step(now: number) {
