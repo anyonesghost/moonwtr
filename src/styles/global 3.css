@@ -730,7 +730,7 @@ body {
 
 .card-wrapper:hover .card-mask {
   aspect-ratio: 1 / 1;
-  transform: rotate(45deg);
+  /* transform: rotate(45deg); */ /* DEBUG: disabled to isolate clipPath morphing */
 }
 
 /* Image wrap — JS controls drift translation; does NOT rotate */

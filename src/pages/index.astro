@@ -195,6 +195,9 @@ const projects = allProjects.sort((a, b) => {
     interpolate(a: string, b: string, opts?: object): (t: number) => string;
   };
 
+  // DEBUG 2: confirm flubber loaded
+  console.log('[morph] typeof flubber:', typeof flubber);
+
   // Tokenize an SVG path and divide every numeric value by 600,
   // normalising 600×600 coordinates to objectBoundingBox (0–1) space.
   function normalizePath(d: string): string {
@@ -228,6 +231,10 @@ const projects = allProjects.sort((a, b) => {
 
   const normalizedShapes = MASK_SHAPES_RAW.map(normalizePath);
   const normalizedDefault = normalizePath(DEFAULT_SHAPE_RAW);
+
+  // DEBUG 4: confirm coordinates are in 0-1 range
+  console.log('[morph] normalizedDefault (first 80 chars):', normalizedDefault.slice(0, 80));
+  console.log('[morph] normalizedShapes[0] (first 80 chars):', normalizedShapes[0].slice(0, 80));
 
   interface MorphCard {
     pathEl: SVGPathElement;
@@ -266,6 +273,12 @@ const projects = allProjects.sort((a, b) => {
   const morphCards: MorphCard[] = [];
   allWrappers.forEach(wrapper => {
     const pathEl = wrapper.querySelector<SVGPathElement>('clipPath path');
+
+    // DEBUG 3: confirm clip-path is applied and path element found
+    const mask = wrapper.querySelector<HTMLElement>('.card-mask');
+    console.log('[morph] card-mask clip-path style:', mask?.style.clipPath ?? 'NONE');
+    console.log('[morph] clipPath path element found:', !!pathEl, pathEl?.getAttribute('d')?.slice(0, 40));
+
     if (!pathEl) return;
     const card: MorphCard = { pathEl, current: normalizedDefault, lastIdx: -1, rafId: null };
     morphCards.push(card);
