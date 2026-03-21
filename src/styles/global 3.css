@@ -721,20 +721,16 @@ body {
   position: relative;
   width: 100%;
   aspect-ratio: 4 / 3;
-  border-radius: 40px;
   overflow: hidden;
-  border: 2px solid var(--color-purple);
   transform: rotate(0deg);
   transform-origin: center;
   transition: transform 400ms cubic-bezier(0.34, 1.56, 0.64, 1),
-              aspect-ratio 400ms cubic-bezier(0.34, 1.56, 0.64, 1),
-              border-color 300ms ease;
+              aspect-ratio 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .card-wrapper:hover .card-mask {
   aspect-ratio: 1 / 1;
   transform: rotate(45deg);
-  border-color: #9B4FDE;
 }
 
 /* Image wrap — JS controls drift translation; does NOT rotate */
