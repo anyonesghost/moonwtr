@@ -1317,15 +1317,14 @@ body {
   justify-content: center;
 }
 
-.about-avatar-icon {
+.about-bio__photo {
   display: block;
-  width: 200px;
-  height: 200px;
-  background-color: var(--color-purple);
-  mask-image: url('/moonwtr/icons/My%20avatar.png');
-  mask-repeat: no-repeat;
-  mask-position: center;
-  mask-size: contain;
+  width: 280px;
+  height: 280px;
+  object-fit: cover;
+  object-position: center top;
+  border-radius: 40px;
+  border: 2px solid var(--color-purple);
   flex-shrink: 0;
 }
 
@@ -1492,9 +1491,10 @@ body {
     order: -1;
   }
 
-  .about-avatar-icon {
-    width: 120px;
-    height: 120px;
+  .about-bio__photo {
+    width: 160px;
+    height: 160px;
+    border-radius: 24px;
   }
 
   .about-services__grid {

@@ -9,7 +9,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     <!-- ─── Section 1: Name / Title ──────────────────────────────── -->
     <section class="about-identity" aria-label="Identity">
       <h1 class="about-identity__wordmark">MOON.WTR</h1>
-      <p class="about-identity__name">Jay Paul Newhouse</p>
+      <p class="about-identity__name">JayPaul Newhouse</p>
     </section>
 
     <!-- ─── Section 2: Bio ───────────────────────────────────────── -->
@@ -28,8 +28,15 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           </p>
         </div>
 
-        <div class="about-bio__avatar" aria-hidden="true">
-          <span class="about-avatar-icon"></span>
+        <div class="about-bio__avatar">
+          <img
+            src="/moonwtr/images/jp-photo.jpg"
+            alt="Jay Paul Newhouse"
+            class="about-bio__photo"
+            width="280"
+            height="280"
+            decoding="async"
+          />
         </div>
 
       </div>
