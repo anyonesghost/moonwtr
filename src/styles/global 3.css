@@ -757,20 +757,22 @@ body {
   z-index: 1;
 }
 
-.card-mask:hover .card-overlay {
+/* Hover on .card-wrapper (no clip-path) so the hit area isn't restricted
+   by the morphing clip shape on .card-mask */
+.card-wrapper:hover .card-overlay {
   opacity: 1;
 }
 
-/* Title — centered above overlay, slides up and counter-rotates on hover */
+/* Title — slides up 8px and fades in on hover */
 .card-title-overlay {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, calc(-50% + 8px));
   z-index: 2;
-  font-family: var(--font-ui);
+  font-family: 'Poppins', sans-serif;
   font-size: 24px;
-  font-weight: 700;
+  font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: #fff;
@@ -781,7 +783,7 @@ body {
   pointer-events: none;
 }
 
-.card-mask:hover .card-title-overlay {
+.card-wrapper:hover .card-title-overlay {
   opacity: 1;
   transform: translate(-50%, -50%);
 }
