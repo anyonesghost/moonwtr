@@ -191,25 +191,11 @@ const projects = allProjects.sort((a, b) => {
   });
 
   // ── SVG clipPath morphing ─────────────────────────────────────────────────
+  // Paths are in raw 600×600 coordinate space. clipPathUnits="userSpaceOnUse"
+  // + a scale transform on the <path> maps them to actual card pixel dimensions.
   import { interpolate as flubberInterpolate } from 'flubber';
 
-  // Tokenize an SVG path and divide every numeric value by 600,
-  // normalising 600×600 coordinates to objectBoundingBox (0–1) space.
-  function normalizePath(d: string): string {
-    const re = /([MmZzLlHhVvCcSsQqTtAa])|(-?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?)/g;
-    const parts: string[] = [];
-    let m: RegExpExecArray | null;
-    while ((m = re.exec(d)) !== null) {
-      if (m[1]) {
-        parts.push(m[1]);
-      } else if (m[2] !== undefined) {
-        parts.push((parseFloat(m[2]) / 600).toFixed(8));
-      }
-    }
-    return parts.join(' ');
-  }
-
-  const MASK_SHAPES_RAW = [
+  const MASK_SHAPES = [
     // Shy Guy
     'M225.04,365.8H.52S-7.35,215.9,72.11,108.02C116.4,47.89,187.81.81,302.82.01c116.32-.81,187.27,46.89,230.46,108.08,76.13,107.88,65.97,257.71,65.97,257.71h-217.4v177.32s-1.25,56.88-79.03,56.88-78.16-56.86-78.16-56.86l.38-177.34Z',
     // Easy Ease
@@ -222,14 +208,7 @@ const projects = allProjects.sort((a, b) => {
     'M594.11,171.99l-6.79-6.79-8.37-8.37-213.25-54.3-178.82-45.54L5.89,9.42l51.49,177.83,50.64,190.88,52.34,197.28,8.15,8.15,7.01,7.01,62.04-62.04s55.26-134.79,107.49-187.01c52.23-52.23,183.87-104.35,183.87-104.35l65.18-65.18Z',
   ];
 
-  const DEFAULT_SHAPE_RAW = 'M40,0 H560 Q600,0 600,40 V560 Q600,600 560,600 H40 Q0,600 0,560 V40 Q0,0 40,0 Z';
-
-  const normalizedShapes = MASK_SHAPES_RAW.map(normalizePath);
-  const normalizedDefault = normalizePath(DEFAULT_SHAPE_RAW);
-
-  // DEBUG 4: confirm coordinates are in 0-1 range
-  console.log('[morph] normalizedDefault (first 80 chars):', normalizedDefault.slice(0, 80));
-  console.log('[morph] normalizedShapes[0] (first 80 chars):', normalizedShapes[0].slice(0, 80));
+  const DEFAULT_SHAPE = 'M40,0 H560 Q600,0 600,40 V560 Q600,600 560,600 H40 Q0,600 0,560 V40 Q0,0 40,0 Z';
 
   interface MorphCard {
     pathEl: SVGPathElement;
@@ -238,27 +217,31 @@ const projects = allProjects.sort((a, b) => {
     rafId: number | null;
   }
 
-  function easeInOut(t: number): number {
-    return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
-  }
+  const easeOut  = (t: number) => 1 - Math.pow(1 - t, 2);
+  const linear   = (t: number) => t;
 
-  function morphTo(card: MorphCard, target: string, duration: number) {
+  function morphTo(
+    card: MorphCard,
+    target: string,
+    duration: number,
+    easing: (t: number) => number,
+  ) {
     if (card.rafId !== null) cancelAnimationFrame(card.rafId);
 
-    const from = card.current;
-    const interp = flubberInterpolate(from, target, { maxSegmentLength: 4 });
-    const start = performance.now();
+    const from  = card.current;
+    const interp = flubberInterpolate(from, target, { maxSegmentLength: 10 });
+    const start  = performance.now();
 
     function step(now: number) {
       const raw = Math.min((now - start) / duration, 1);
-      const d = interp(easeInOut(raw));
+      const d   = interp(easing(raw));
       card.pathEl.setAttribute('d', d);
       card.current = d;
       if (raw < 1) {
         card.rafId = requestAnimationFrame(step);
       } else {
-        card.rafId = null;
-        card.current = target;
+        card.rafId    = null;
+        card.current  = target;
       }
     }
     card.rafId = requestAnimationFrame(step);
@@ -266,27 +249,29 @@ const projects = allProjects.sort((a, b) => {
 
   const morphCards: MorphCard[] = [];
   allWrappers.forEach(wrapper => {
+    const mask   = wrapper.querySelector<HTMLElement>('.card-mask');
     const pathEl = wrapper.querySelector<SVGPathElement>('clipPath path');
+    if (!pathEl || !mask) return;
 
-    // DEBUG 3: confirm clip-path is applied and path element found
-    const mask = wrapper.querySelector<HTMLElement>('.card-mask');
-    console.log('[morph] card-mask clip-path style:', mask?.style.clipPath ?? 'NONE');
-    console.log('[morph] clipPath path element found:', !!pathEl, pathEl?.getAttribute('d')?.slice(0, 40));
+    // Scale 600×600 path coordinates to the card's actual pixel dimensions
+    const { width, height } = mask.getBoundingClientRect();
+    const sx = width  / 600;
+    const sy = height / 600;
+    pathEl.setAttribute('transform', `scale(${sx},${sy})`);
 
-    if (!pathEl) return;
-    const card: MorphCard = { pathEl, current: normalizedDefault, lastIdx: -1, rafId: null };
+    const card: MorphCard = { pathEl, current: DEFAULT_SHAPE, lastIdx: -1, rafId: null };
     morphCards.push(card);
 
     wrapper.addEventListener('mouseenter', () => {
       let idx: number;
-      do { idx = Math.floor(Math.random() * normalizedShapes.length); }
-      while (normalizedShapes.length > 1 && idx === card.lastIdx);
+      do { idx = Math.floor(Math.random() * MASK_SHAPES.length); }
+      while (MASK_SHAPES.length > 1 && idx === card.lastIdx);
       card.lastIdx = idx;
-      morphTo(card, normalizedShapes[idx], 500);
+      morphTo(card, MASK_SHAPES[idx], 300, easeOut);
     });
 
     wrapper.addEventListener('mouseleave', () => {
-      morphTo(card, normalizedDefault, 400);
+      morphTo(card, DEFAULT_SHAPE, 200, linear);
     });
   });
 </script>

@@ -12,15 +12,15 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 
 // Stable unique ID for the SVG clipPath (slug is URL-safe)
 const clipId = `clip-${slug}`;
-// Default shape: rounded rectangle normalized to objectBoundingBox (0–1), matching border-radius: 40px on a 600×600 grid
-const DEFAULT_PATH = 'M 0.06667 0 H 0.93333 Q 1 0 1 0.06667 V 0.93333 Q 1 1 0.93333 1 H 0.06667 Q 0 1 0 0.93333 V 0.06667 Q 0 0 0.06667 0 Z';
+// Default shape: rounded rectangle in 600×600 space. JS scales to card dimensions via transform.
+const DEFAULT_PATH = 'M40,0 H560 Q600,0 600,40 V560 Q600,600 560,600 H40 Q0,600 0,560 V40 Q0,0 40,0 Z';
 ---
 
 <div class="card-wrapper">
   <!-- Hidden SVG that defines the clip shape for this card -->
   <svg width="0" height="0" style="position:absolute;overflow:hidden" aria-hidden="true">
     <defs>
-      <clipPath id={clipId} clipPathUnits="objectBoundingBox">
+      <clipPath id={clipId} clipPathUnits="userSpaceOnUse">
         <path class="card-clip-path" d={DEFAULT_PATH} />
       </clipPath>
     </defs>
