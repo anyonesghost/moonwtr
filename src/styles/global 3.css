@@ -709,20 +709,25 @@ body {
 
 .card-wrapper {
   position: relative;
+  transform-origin: center center;
+  transition: transform 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.card-wrapper:hover {
+  transform: scale(0.75) rotate(45deg);
 }
 
 .project-card__link {
   display: block;
 }
 
-/* ── Mask — clips image, rotates into diamond on hover ── */
+/* ── Mask — counter-rotates to keep clip shape upright inside the rotating wrapper ── */
 
 .card-mask {
   position: relative;
   width: 100%;
   aspect-ratio: 4 / 3;
   overflow: hidden;
-  transform: rotate(0deg);
   transform-origin: center;
   transition: transform 400ms cubic-bezier(0.34, 1.56, 0.64, 1),
               aspect-ratio 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -730,7 +735,7 @@ body {
 
 .card-wrapper:hover .card-mask {
   aspect-ratio: 1 / 1;
-  /* transform: rotate(45deg); */ /* DEBUG: disabled to isolate clipPath morphing */
+  transform: rotate(-45deg);
 }
 
 /* Image wrap — JS controls drift translation; does NOT rotate */
@@ -745,7 +750,7 @@ body {
   z-index: 0;
 }
 
-/* Image — fills wrap, counter-rotates to stay upright inside diamond */
+/* Image — fills wrap, counter-rotates -45deg within the -45deg mask (net -90deg from wrapper = upright when JS drift is also factored) */
 .card-image {
   width: 100%;
   height: 100%;
@@ -753,7 +758,6 @@ body {
   max-height: none;
   object-fit: cover;
   display: block;
-  transform: rotate(0deg);
   transition: transform 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
@@ -801,9 +805,9 @@ body {
   transform: translate(-50%, -50%);
 }
 
-/* Counter-rotate title to stay upright inside the diamond */
+/* Title stays at its centered position when wrapper+mask are both rotating */
 .card-wrapper:hover .card-mask:hover .card-title-overlay {
-  transform: translate(-50%, -50%) rotate(-45deg);
+  transform: translate(-50%, -50%);
 }
 
 /* ── Body (below the image) ── */
