@@ -757,36 +757,6 @@ body {
   z-index: 1;
 }
 
-/* Hover on .card-wrapper (no clip-path) so the hit area isn't restricted
-   by the morphing clip shape on .card-mask */
-.card-wrapper:hover .card-overlay {
-  opacity: 1;
-}
-
-/* Title — slides up 8px and fades in on hover */
-.card-title-overlay {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, calc(-50% + 8px));
-  z-index: 2;
-  font-family: 'Poppins', sans-serif;
-  font-size: 24px;
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: #fff;
-  text-align: center;
-  padding: 0 20px;
-  opacity: 0;
-  transition: opacity 300ms ease, transform 300ms ease;
-  pointer-events: none;
-}
-
-.card-wrapper:hover .card-title-overlay {
-  opacity: 1;
-  transform: translate(-50%, -50%);
-}
 
 /* ── Body (below the image) ── */
 
@@ -802,6 +772,14 @@ body {
   letter-spacing: 0.02em;
   color: var(--color-text);
   margin-bottom: 6px;
+  transition: color 150ms ease, font-weight 150ms ease;
+}
+
+.card-wrapper:hover .project-card__title {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 900;
+  font-style: normal;
+  color: var(--color-purple);
 }
 
 /* ── Meta row (tags + year) ── */
