@@ -1,0 +1,151 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="About — Moon.WTR" description="Jay Paul Newhouse — motion, music, games, worlds, and machines.">
+
+  <main id="main-content" class="about-main">
+
+    <!-- ─── Section 1: Name / Title ──────────────────────────────── -->
+    <section class="about-identity" aria-label="Identity">
+      <h1 class="about-identity__wordmark">MOON.WTR</h1>
+      <p class="about-identity__name">Jay Paul Newhouse</p>
+    </section>
+
+    <!-- ─── Section 2: Bio ───────────────────────────────────────── -->
+    <section class="about-bio" aria-label="Biography">
+      <div class="about-bio__inner">
+
+        <div class="about-bio__text">
+          <p>
+            I make things move, breathe, and feel alive. Based in Ohio, I work at the intersection of motion design, 3D, interactive media, and music — chasing that moment when craft disappears and the experience takes over.
+          </p>
+          <p>
+            My work spans commercials, title sequences, experimental film, video games, generative systems, and the occasional machine that does something nobody asked for but everyone needed. I'm drawn to projects that resist easy categorization and demand a new kind of thinking.
+          </p>
+          <p>
+            I believe the best creative work is honest about its edges — it knows exactly what it is and commits fully. That's what I try to bring to every project: clarity of intent, relentless craft, and a genuine love for the weird and the precise.
+          </p>
+        </div>
+
+        <div class="about-bio__avatar" aria-hidden="true">
+          <span class="about-avatar-icon"></span>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ─── Section 3: Services ──────────────────────────────────── -->
+    <section class="about-services" aria-label="Services">
+      <h2 class="about-section-heading">WHAT I DO</h2>
+      <div class="about-services__grid">
+
+        <div class="about-service-card">
+          <h3 class="about-service-card__title">3D</h3>
+          <p class="about-service-card__body">
+            From concept to final render — product visualization, world-building, motion graphics, and experimental forms. Cinema 4D, Houdini, Blender.
+          </p>
+        </div>
+
+        <div class="about-service-card">
+          <h3 class="about-service-card__title">MOTION</h3>
+          <p class="about-service-card__body">
+            Title sequences, commercials, music videos, brand films. Animation that earns its frame rate. After Effects, DaVinci Resolve, custom tooling.
+          </p>
+        </div>
+
+        <div class="about-service-card">
+          <h3 class="about-service-card__title">BUILD</h3>
+          <p class="about-service-card__body">
+            Interactive experiences, generative systems, and tools that make the creative process faster or stranger. Web, native, and wherever the idea needs to live.
+          </p>
+        </div>
+
+        <div class="about-service-card">
+          <h3 class="about-service-card__title">GAME</h3>
+          <p class="about-service-card__body">
+            Worlds with weight. Game design, level art, real-time VFX, and the invisible systems that make players feel something without knowing why.
+          </p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ─── Section 4: Contact ───────────────────────────────────── -->
+    <section class="about-contact" aria-label="Contact">
+      <h2 class="about-section-heading">GET IN TOUCH</h2>
+      <p class="about-contact__lede">Got a project? Let's talk.</p>
+      <a href="mailto:mooon.wtr@gmail.com" class="about-contact__email">mooon.wtr@gmail.com</a>
+
+      <form
+        class="about-form"
+        action="https://formspree.io/f/mooon.wtr@gmail.com"
+        method="POST"
+        aria-label="Contact form"
+      >
+        <div class="about-form__field">
+          <label class="about-form__label" for="about-name">NAME</label>
+          <input
+            class="about-form__input"
+            type="text"
+            id="about-name"
+            name="name"
+            required
+            autocomplete="name"
+          />
+        </div>
+
+        <div class="about-form__field">
+          <label class="about-form__label" for="about-email">EMAIL</label>
+          <input
+            class="about-form__input"
+            type="email"
+            id="about-email"
+            name="email"
+            required
+            autocomplete="email"
+          />
+        </div>
+
+        <div class="about-form__field">
+          <label class="about-form__label" for="about-message">MESSAGE</label>
+          <textarea
+            class="about-form__input about-form__input--textarea"
+            id="about-message"
+            name="message"
+            rows="5"
+            required
+          ></textarea>
+        </div>
+
+        <button class="about-form__submit" type="submit">SEND IT →</button>
+      </form>
+    </section>
+
+  </main>
+
+</BaseLayout>
+
+<script>
+  // ── Fade-up entrance for about sections ────────────────────────────────────
+  const sections = document.querySelectorAll<HTMLElement>(
+    '.about-identity, .about-bio, .about-services, .about-contact'
+  );
+
+  if ('IntersectionObserver' in window) {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            (entry.target as HTMLElement).classList.add('is-visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+    sections.forEach(s => observer.observe(s));
+  } else {
+    sections.forEach(s => s.classList.add('is-visible'));
+  }
+</script>

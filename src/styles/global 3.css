@@ -1224,6 +1224,286 @@ body {
 
 
 /* ==========================================================================
+   ABOUT PAGE
+   ========================================================================== */
+
+/* ── Entrance animation shared by all about sections ── */
+
+.about-main {
+  padding-bottom: var(--space-12);
+}
+
+.about-identity,
+.about-bio,
+.about-services,
+.about-contact {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 500ms ease, transform 500ms ease;
+}
+
+.about-identity.is-visible,
+.about-bio.is-visible,
+.about-services.is-visible,
+.about-contact.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .about-identity,
+  .about-bio,
+  .about-services,
+  .about-contact {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* ── Section 1: Identity ── */
+
+.about-identity {
+  padding: var(--space-8) var(--space-6) var(--space-6);
+  border-bottom: 2px solid var(--color-purple);
+}
+
+.about-identity__wordmark {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 900;
+  font-size: clamp(3rem, 10vw, 8rem);
+  color: var(--color-purple);
+  line-height: 0.9;
+  letter-spacing: -0.02em;
+}
+
+.about-identity__name {
+  font-family: var(--font-ui);
+  font-size: 14px;
+  letter-spacing: 0.08em;
+  color: var(--color-text);
+  margin-top: 16px;
+}
+
+/* ── Section 2: Bio ── */
+
+.about-bio {
+  border-bottom: 2px solid var(--color-purple);
+}
+
+.about-bio__inner {
+  display: grid;
+  grid-template-columns: 60fr 40fr;
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-6);
+  gap: var(--space-8);
+  align-items: center;
+}
+
+.about-bio__text {
+  font-family: var(--font-ui);
+  font-size: 14px;
+  line-height: 2;
+  color: var(--color-text);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.about-bio__avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.about-avatar-icon {
+  display: block;
+  width: 200px;
+  height: 200px;
+  background-color: var(--color-purple);
+  mask-image: url('/moonwtr/icons/My%20avatar.png');
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+  flex-shrink: 0;
+}
+
+/* ── Section heading shared ── */
+
+.about-section-heading {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: var(--color-purple);
+  text-transform: uppercase;
+  margin-bottom: var(--space-4);
+}
+
+/* ── Section 3: Services ── */
+
+.about-services {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-6);
+  border-bottom: 2px solid var(--color-purple);
+}
+
+.about-services__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.about-service-card {
+  border: 2px solid var(--color-purple);
+  padding: var(--space-4) var(--space-4) var(--space-4);
+  transition: background-color 200ms ease;
+}
+
+.about-service-card:hover {
+  background-color: rgba(123, 47, 190, 0.06);
+}
+
+.about-service-card__title {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 900;
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  color: var(--color-purple);
+  line-height: 0.9;
+  letter-spacing: -0.02em;
+  margin-bottom: var(--space-3);
+}
+
+.about-service-card__body {
+  font-family: var(--font-ui);
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--color-text);
+}
+
+/* ── Section 4: Contact ── */
+
+.about-contact {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-6);
+}
+
+.about-contact__lede {
+  font-family: var(--font-ui);
+  font-size: 14px;
+  color: var(--color-text);
+  margin-bottom: var(--space-3);
+}
+
+.about-contact__email {
+  display: inline-block;
+  font-family: var(--font-ui);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--color-purple);
+  text-decoration: none;
+  letter-spacing: 0.02em;
+  margin-bottom: var(--space-8);
+  transition: opacity 200ms ease;
+}
+
+.about-contact__email:hover {
+  opacity: 0.7;
+}
+
+/* ── Contact form ── */
+
+.about-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: 560px;
+}
+
+.about-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.about-form__label {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--color-purple);
+}
+
+.about-form__input {
+  background: none;
+  border: none;
+  border-bottom: 1.5px solid var(--color-purple);
+  border-radius: 0;
+  padding: 8px 0;
+  font-family: var(--font-ui);
+  font-size: 14px;
+  color: var(--color-text);
+  outline: none;
+  transition: border-bottom-color 150ms ease;
+  -webkit-appearance: none;
+  appearance: none;
+  resize: none;
+}
+
+.about-form__input:focus {
+  border-bottom-color: var(--color-text);
+}
+
+.about-form__input--textarea {
+  min-height: 100px;
+  line-height: 1.8;
+}
+
+.about-form__submit {
+  align-self: flex-start;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  color: var(--color-purple);
+  border: 1.5px solid var(--color-purple);
+  border-radius: 999px;
+  padding: 10px 24px;
+  cursor: pointer;
+  background: none;
+  transition: background-color 200ms ease, color 200ms ease;
+  margin-top: var(--space-2);
+}
+
+.about-form__submit:hover {
+  background-color: var(--color-purple);
+  color: #fff;
+}
+
+/* ── About page responsive ── */
+
+@media (max-width: 768px) {
+  .about-bio__inner {
+    grid-template-columns: 1fr;
+  }
+
+  .about-bio__avatar {
+    order: -1;
+  }
+
+  .about-avatar-icon {
+    width: 120px;
+    height: 120px;
+  }
+
+  .about-services__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* ==========================================================================
    RESPONSIVE
    ========================================================================== */
 
