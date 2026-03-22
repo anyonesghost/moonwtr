@@ -4,17 +4,18 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
 export async function getStaticPaths() {
   const projects = await getCollection('work');
-  return projects.map(project => ({
+  const sorted = projects.sort((a, b) => b.data.year - a.data.year);
+  return sorted.map((project, i) => ({
     params: { slug: project.id },
-    props: { project },
+    props: { project, nextProject: sorted[i + 1] ?? null },
   }));
 }
 
-const { project } = Astro.props;
-const { title, tags, year, thumbnail, description, externalUrl } = project.data;
+const { project, nextProject } = Astro.props;
+const { title, tags, year, thumbnail, description, externalUrl, intention, decisions, processImages, thread } = project.data;
 const { Content } = await render(project);
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 
-// Determine CTA label based on tags
 function getCtaLabel(tags: string[]): string {
   const lower = tags.map(t => t.toLowerCase());
   if (lower.includes('game')) return 'PLAY →';
@@ -38,6 +39,8 @@ const ctaLabel = getCtaLabel(tags);
           height={thumbnail.height}
           class="project-hero__img"
           decoding="async"
+          data-lightbox-src={thumbnail.src}
+          data-lightbox-alt={`${title} — full image`}
           id="js-hero-img"
         />
         <div class="project-hero__gradient" aria-hidden="true"></div>
@@ -48,46 +51,107 @@ const ctaLabel = getCtaLabel(tags);
       </div>
     </section>
 
-    <!-- ─── Content ─────────────────────────────────────────────── -->
-    <section class="project-content" aria-label="Project details">
+    <!-- ─── Section 1: The Hook ──────────────────────────────────── -->
+    {description && (
+      <section class="project-hook" aria-label="Description">
+        <p class="project-hook__text">{description}</p>
+      </section>
+    )}
 
-      <div class="project-content__inner">
+    <!-- ─── Sections 2–6 + nav ───────────────────────────────────── -->
+    <div class="project-bts">
 
-        <!-- Back link -->
-        <a href={`${import.meta.env.BASE_URL.replace(/\/$/, '')}/`} class="project-back">← BACK</a>
+      <!-- ─── Section 2: The Intention ─────────────────────────── -->
+      {intention && (
+        <section class="project-bts__section" aria-label="The Intention">
+          <h2 class="project-bts__label">THE INTENTION</h2>
+          <p class="project-bts__body">{intention}</p>
+        </section>
+      )}
 
-        <!-- Two-column body -->
-        <div class="project-body">
+      <!-- ─── Section 3: The Decisions ─────────────────────────── -->
+      {decisions && decisions.length > 0 && (
+        <section class="project-bts__section" aria-label="The Decisions">
+          <h2 class="project-bts__label">THE DECISIONS</h2>
+          <ul class="project-decisions" role="list">
+            {decisions.map(d => (
+              <li class="project-decision">
+                <h3 class="project-decision__label">{d.label}</h3>
+                <p class="project-decision__body">{d.body}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
-          <!-- Left: prose -->
-          <div class="project-body__prose">
-            {description && <p class="project-body__description">{description}</p>}
-            <Content />
-          </div>
+      <!-- ─── Section 4: The Process ───────────────────────────── -->
+      {processImages && processImages.length > 0 && (
+        <section class="project-bts__section" aria-label="The Process">
+          <h2 class="project-bts__label">THE PROCESS</h2>
+          <ul class="project-process-grid" role="list">
+            {processImages.map((img, i) => (
+              <li>
+                <img
+                  src={img.src}
+                  alt={`${title} — process image ${i + 1}`}
+                  width={img.width}
+                  height={img.height}
+                  class="project-process-img js-lightbox-trigger"
+                  data-lightbox-src={img.src}
+                  data-lightbox-alt={`${title} — process ${i + 1}`}
+                  decoding="async"
+                  loading="lazy"
+                />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
-          <!-- Right: meta -->
-          <aside class="project-body__meta">
-            <ul class="project-meta__tags" role="list" aria-label="Project disciplines">
-              {tags.map(tag => (
-                <li class="project-meta__tag">{tag}</li>
-              ))}
-            </ul>
-            <time class="project-meta__year" datetime={String(year)}>{year}</time>
-            {externalUrl && (
-              <a
-                href={externalUrl}
-                class="project-meta__cta"
-                target="_blank"
-                rel="noopener noreferrer"
-              >{ctaLabel}</a>
-            )}
-          </aside>
-
+      <!-- ─── Section 5: The Result ─────────────────────────────── -->
+      <section class="project-bts__section project-bts__section--result" aria-label="The Result">
+        <h2 class="project-bts__label">THE RESULT</h2>
+        <div class="project-result">
+          <img
+            src={thumbnail.src}
+            alt={`${title} — final image`}
+            width={thumbnail.width}
+            height={thumbnail.height}
+            class="project-result__img js-lightbox-trigger"
+            data-lightbox-src={thumbnail.src}
+            data-lightbox-alt={`${title} — full image`}
+            decoding="async"
+          />
+          <span class="project-result__hint" aria-hidden="true">[ EXPAND ]</span>
+          {externalUrl && (
+            <a
+              href={externalUrl}
+              class="project-result__cta"
+              target="_blank"
+              rel="noopener noreferrer"
+            >{ctaLabel}</a>
+          )}
         </div>
+      </section>
 
-      </div>
+      <!-- ─── Section 6: The Thread ─────────────────────────────── -->
+      {thread && (
+        <section class="project-thread" aria-label="The Thread">
+          <p class="project-thread__text">{thread}</p>
+        </section>
+      )}
 
-    </section>
+      <!-- ─── Navigation ───────────────────────────────────────── -->
+      <nav class="project-nav" aria-label="Project navigation">
+        <a href={`${base}/`} class="project-nav__link project-nav__link--back">← BACK TO WORK</a>
+        {nextProject && (
+          <a href={`${base}/work/${nextProject.id}/`} class="project-nav__link project-nav__link--next">
+            NEXT PROJECT →
+          </a>
+        )}
+      </nav>
+
+    </div><!-- /.project-bts -->
 
   </main>
 
@@ -96,7 +160,6 @@ const ctaLabel = getCtaLabel(tags);
 <script>
   // ── Hero entrance animation ────────────────────────────────────────────────
   const hero = document.querySelector<HTMLElement>('.project-hero');
-
   if (hero) {
     hero.classList.add('is-entering');
     requestAnimationFrame(() => {
@@ -108,9 +171,6 @@ const ctaLabel = getCtaLabel(tags);
   }
 
   // ── Lightbox ───────────────────────────────────────────────────────────────
-  const heroImg = document.getElementById('js-hero-img') as HTMLImageElement | null;
-
-  // Build overlay and inject into body
   const lightbox = document.createElement('div');
   lightbox.id = 'js-lightbox';
   lightbox.setAttribute('aria-modal', 'true');
@@ -122,12 +182,12 @@ const ctaLabel = getCtaLabel(tags);
   `;
   document.body.appendChild(lightbox);
 
-  const lbImg = lightbox.querySelector<HTMLImageElement>('#js-lightbox-img')!;
+  const lbImg   = lightbox.querySelector<HTMLImageElement>('#js-lightbox-img')!;
   const lbClose = lightbox.querySelector<HTMLButtonElement>('#js-lightbox-close')!;
 
-  function openLightbox() {
-    lbImg.src = heroImg!.src;
-    lbImg.alt = heroImg!.alt;
+  function openLightbox(src: string, alt: string) {
+    lbImg.src = src;
+    lbImg.alt = alt;
     lightbox.classList.add('is-open');
     document.body.style.overflow = 'hidden';
   }
@@ -137,15 +197,18 @@ const ctaLabel = getCtaLabel(tags);
     document.body.style.overflow = '';
   }
 
-  heroImg?.addEventListener('click', openLightbox);
-  lbClose.addEventListener('click', closeLightbox);
-
-  // Click outside image closes
-  lightbox.addEventListener('click', (e) => {
-    if (e.target === lightbox) closeLightbox();
+  // Hero img + all .js-lightbox-trigger elements share the same lightbox
+  document.querySelectorAll<HTMLElement>('#js-hero-img, .js-lightbox-trigger').forEach(el => {
+    el.style.cursor = 'zoom-in';
+    el.addEventListener('click', () => {
+      const src = el.dataset.lightboxSrc ?? (el as HTMLImageElement).src;
+      const alt = el.dataset.lightboxAlt ?? (el as HTMLImageElement).alt;
+      openLightbox(src, alt);
+    });
   });
 
-  // Escape key closes
+  lbClose.addEventListener('click', closeLightbox);
+  lightbox.addEventListener('click', (e) => { if (e.target === lightbox) closeLightbox(); });
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && lightbox.classList.contains('is-open')) closeLightbox();
   });

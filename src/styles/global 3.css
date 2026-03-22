@@ -1160,6 +1160,235 @@ body {
 
 
 /* ==========================================================================
+   PROJECT DETAIL — BEHIND THE SCENES
+   ========================================================================== */
+
+/* ── Section 1: The Hook ── */
+
+.project-hook {
+  padding: var(--space-8) var(--space-6);
+  border-bottom: 2px solid var(--color-purple);
+  display: flex;
+  justify-content: center;
+}
+
+.project-hook__text {
+  font-family: var(--font-ui);
+  font-size: 18px;
+  line-height: 1.8;
+  color: var(--color-text);
+  max-width: 600px;
+  text-align: center;
+}
+
+/* ── BTS wrapper ── */
+
+.project-bts {
+  padding: 0 var(--space-6) var(--space-12);
+}
+
+.project-bts__section {
+  padding-top: var(--space-8);
+  padding-bottom: var(--space-8);
+  border-bottom: 2px solid var(--color-purple);
+  max-width: var(--max-width);
+  margin: 0 auto;
+}
+
+.project-bts__section--result {
+  border-bottom: none;
+}
+
+/* ── BTS section label ── */
+
+.project-bts__label {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: var(--color-purple);
+  text-transform: uppercase;
+  padding-bottom: 10px;
+  border-bottom: 1.5px solid var(--color-purple);
+  margin-bottom: var(--space-4);
+  display: block;
+}
+
+/* ── BTS body text ── */
+
+.project-bts__body {
+  font-family: var(--font-ui);
+  font-size: 14px;
+  line-height: 2;
+  color: var(--color-text);
+  max-width: 680px;
+}
+
+/* ── Section 3: The Decisions ── */
+
+.project-decisions {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.project-decision {
+  padding-left: 24px;
+  border-left: 1px solid var(--color-purple);
+}
+
+.project-decision__label {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 900;
+  font-size: 18px;
+  color: var(--color-purple);
+  margin-bottom: 10px;
+  line-height: 1;
+}
+
+.project-decision__body {
+  font-family: var(--font-ui);
+  font-size: 14px;
+  line-height: 2;
+  color: var(--color-text);
+  max-width: 680px;
+}
+
+/* ── Section 4: The Process ── */
+
+.project-process-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  list-style: none;
+}
+
+.project-process-grid li {
+  display: block;
+}
+
+.project-process-img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 20px;
+  border: 2px solid var(--color-purple);
+  display: block;
+  transition: opacity 150ms ease;
+}
+
+.project-process-img:hover {
+  opacity: 0.85;
+}
+
+/* ── Section 5: The Result ── */
+
+.project-result {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.project-result__img {
+  width: 100%;
+  max-height: 70vh;
+  object-fit: cover;
+  display: block;
+  border: 2px solid var(--color-purple);
+}
+
+.project-result__hint {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: #fff;
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.project-result__cta {
+  display: inline-block;
+  margin-top: var(--space-3);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--color-purple);
+  border: 1.5px solid var(--color-purple);
+  border-radius: 999px;
+  padding: 6px 16px;
+  transition: background-color 200ms ease, color 200ms ease;
+}
+
+.project-result__cta:hover {
+  background-color: var(--color-purple);
+  color: #fff;
+}
+
+/* ── Section 6: The Thread ── */
+
+.project-thread {
+  border-top: 2px solid var(--color-purple);
+  border-bottom: 2px solid var(--color-purple);
+  padding: var(--space-8) var(--space-6);
+  text-align: center;
+  background-color: var(--color-bg);
+}
+
+.project-thread__text {
+  font-family: var(--font-ui);
+  font-size: 16px;
+  font-style: italic;
+  color: var(--color-purple);
+  line-height: 1.9;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+/* ── Project navigation ── */
+
+.project-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: var(--space-6);
+  max-width: var(--max-width);
+  margin: 0 auto;
+}
+
+.project-nav__link {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--color-purple);
+  text-decoration: none;
+  transition: opacity 200ms ease;
+}
+
+.project-nav__link:hover {
+  opacity: 0.7;
+}
+
+@media (max-width: 768px) {
+  .project-hook__text {
+    font-size: 15px;
+  }
+
+  .project-process-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .project-process-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* ==========================================================================
    PAGE ENTRANCE ANIMATION
    ========================================================================== */
 

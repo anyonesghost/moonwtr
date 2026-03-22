@@ -42,6 +42,21 @@ const work = defineCollection({
 
       /** Optional external link for the project (live site, video, etc.) */
       externalUrl: z.string().url().optional(),
+
+      /** Behind-the-scenes: the creative intention */
+      intention: z.string().optional(),
+
+      /** Behind-the-scenes: key creative decisions */
+      decisions: z.array(z.object({
+        label: z.string(),
+        body: z.string(),
+      })).optional(),
+
+      /** Behind-the-scenes: process / WIP images */
+      processImages: z.array(image()).optional(),
+
+      /** Closing thread / series note shown as a pull quote */
+      thread: z.string().optional(),
     }),
 });
 
