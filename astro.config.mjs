@@ -5,6 +5,6 @@ import { defineConfig } from 'astro/config';
 export default defineConfig({
   output: 'static',
 
-  site: 'https://anyonesghost.github.io',
-  base: '/moonwtr',
+  site: 'https://moonwtr.xyz',
+  base: '/',
 });
