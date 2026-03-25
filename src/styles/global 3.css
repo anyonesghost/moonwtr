@@ -520,32 +520,32 @@ body {
   width: 60px;
   height: 60px;
   flex-shrink: 0;
-  mask-image: url('/icons/My%20avatar.png');
+  mask-image: url('/moonwtr/icons/My%20avatar.png');
 }
 
 .icon--email {
   /* Landscape icon — wider than tall; square box, mask-size:contain handles ratio */
   width: 48px;
   height: 32px;
-  mask-image: url('/icons/Envelope.png');
+  mask-image: url('/moonwtr/icons/Envelope.png');
 }
 
 .icon--instagram {
   width: 28px;
   height: 28px;
-  mask-image: url('/icons/instagram.png');
+  mask-image: url('/moonwtr/icons/instagram.png');
 }
 
 .icon--search {
   width: 18px;
   height: 18px;
-  mask-image: url('/icons/search%20loupe.png');
+  mask-image: url('/moonwtr/icons/search%20loupe.png');
 }
 
 .icon--filter {
   width: 18px;
   height: 18px;
-  mask-image: url('/icons/filter%20eye.png');
+  mask-image: url('/moonwtr/icons/filter%20eye.png');
 }
 
 
