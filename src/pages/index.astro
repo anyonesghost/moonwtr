@@ -131,7 +131,17 @@ const projects = allProjects.sort((a, b) => {
     });
   });
 
-  // ── Hero heading: wave ripple + 3D tilt ──────────────────────────────────
+  // ── Hero heading: wave ripple + 3D tilt + color shift ────────────────────
+  const HERO_COLOR_BASE   = [0x7B, 0x2F, 0xBE] as const; // #7B2FBE
+  const HERO_COLOR_NEAR   = [0xA9, 0xE1, 0xCD] as const; // #a9e1cd
+
+  function lerpColor(a: readonly number[], b: readonly number[], t: number): string {
+    const r = Math.round(a[0] + (b[0] - a[0]) * t);
+    const g = Math.round(a[1] + (b[1] - a[1]) * t);
+    const bl = Math.round(a[2] + (b[2] - a[2]) * t);
+    return `rgb(${r},${g},${bl})`;
+  }
+
   const heroSection = document.querySelector<HTMLElement>('.hero-section');
   const heroHeading = document.querySelector<HTMLElement>('.hero-heading');
   const heroChars   = Array.from(document.querySelectorAll<HTMLElement>('.hero-char'));
@@ -147,8 +157,8 @@ const projects = allProjects.sort((a, b) => {
       heroMouseY = e.clientY;
       heroActive = true;
 
-      // Strip transitions during active move for responsiveness
-      heroChars.forEach(c => { c.style.transition = 'none'; });
+      // Strip transform transitions during active move; keep snappy color transition
+      heroChars.forEach(c => { c.style.transition = 'color 0.15s ease'; });
       heroHeading.style.transition = 'none';
 
       if (heroRafId === null) {
@@ -163,12 +173,12 @@ const projects = allProjects.sort((a, b) => {
         heroRafId = null;
       }
 
-      const settle = 'transform 0.6s ease-out';
       heroChars.forEach(c => {
-        c.style.transition = settle;
+        c.style.transition = 'transform 0.6s ease-out, color 0.4s ease';
         c.style.transform = 'translateY(0) scale(1)';
+        c.style.color = '#7B2FBE';
       });
-      heroHeading.style.transition = settle;
+      heroHeading.style.transition = 'transform 0.6s ease-out';
       heroHeading.style.transform = 'perspective(800px) rotateX(0deg) rotateY(0deg)';
     });
 
@@ -186,6 +196,7 @@ const projects = allProjects.sort((a, b) => {
         const lift = 12 * proximity;
         const scale = 1 + 0.08 * proximity;
         char.style.transform = `translateY(${-lift}px) scale(${scale})`;
+        char.style.color = lerpColor(HERO_COLOR_BASE, HERO_COLOR_NEAR, proximity);
       });
 
       // Whole-heading 3D tilt
