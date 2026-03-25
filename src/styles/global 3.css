@@ -715,13 +715,20 @@ body {
   display: block;
 }
 
-/* ── Mask — clip region; shape is driven entirely by the SVG clipPath morph ── */
+/* ── Mask — rounded rectangle container for the card image ── */
 
 .card-mask {
   position: relative;
   width: 100%;
   aspect-ratio: 4 / 3;
   overflow: hidden;
+  border-radius: 40px;
+  border: 2px solid var(--color-purple);
+  transition: border-color 150ms ease;
+}
+
+.card-wrapper:hover .card-mask {
+  border-color: #9B4FDE;
 }
 
 /* Image wrap — JS controls drift translation; does NOT rotate */

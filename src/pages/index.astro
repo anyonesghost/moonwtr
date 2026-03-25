@@ -67,8 +67,6 @@ const projects = allProjects.sort((a, b) => {
   });
 
   // ── Proximity image drift on cards ───────────────────────────────────────
-  // Drift targets .card-image-wrap (translation only).
-  // .card-image handles counter-rotation via CSS independently.
   const DRIFT_RADIUS = 400;
   const DRIFT_STRENGTH = 0.08;
 
@@ -190,88 +188,4 @@ const projects = allProjects.sort((a, b) => {
     });
   });
 
-  // ── SVG clipPath morphing ─────────────────────────────────────────────────
-  // Paths are in raw 600×600 coordinate space. clipPathUnits="userSpaceOnUse"
-  // + a scale transform on the <path> maps them to actual card pixel dimensions.
-  import { interpolate as flubberInterpolate } from 'flubber';
-
-  const MASK_SHAPES = [
-    // Shy Guy
-    'M225.04,365.8H.52S-7.35,215.9,72.11,108.02C116.4,47.89,187.81.81,302.82.01c116.32-.81,187.27,46.89,230.46,108.08,76.13,107.88,65.97,257.71,65.97,257.71h-217.4v177.32s-1.25,56.88-79.03,56.88-78.16-56.86-78.16-56.86l.38-177.34Z',
-    // Easy Ease
-    'M562.45,0H38.06v52.15s126.03,143.41,126.03,263.64-126.53,227.43-126.53,227.43v56.78h507.51v-56.78s-112.99-95.61-112.99-228.88S562.45,52.15,562.45,52.15V0Z',
-    // Ease Out
-    'M569.04,0h-243.15l-131.13,135.64-68.29,70.63-95.51,98.79,98.9,98.9,65.46,65.46,130.58,130.58h243.15v-88.93s-121.58-136.21-121.58-211.07,121.58-206.57,121.58-206.57V0Z',
-    // Ease In
-    'M30.96,0h243.15l131.13,135.64,68.29,70.63,95.51,98.79-98.9,98.9-65.46,65.46-130.58,130.58H30.96v-88.93s121.58-136.21,121.58-211.07S30.96,93.43,30.96,93.43V0Z',
-    // Direct Selection
-    'M594.11,171.99l-6.79-6.79-8.37-8.37-213.25-54.3-178.82-45.54L5.89,9.42l51.49,177.83,50.64,190.88,52.34,197.28,8.15,8.15,7.01,7.01,62.04-62.04s55.26-134.79,107.49-187.01c52.23-52.23,183.87-104.35,183.87-104.35l65.18-65.18Z',
-  ];
-
-  const DEFAULT_SHAPE = 'M40,0 H560 Q600,0 600,40 V560 Q600,600 560,600 H40 Q0,600 0,560 V40 Q0,0 40,0 Z';
-
-  interface MorphCard {
-    pathEl: SVGPathElement;
-    current: string;
-    lastIdx: number;
-    rafId: number | null;
-  }
-
-  const easeOut  = (t: number) => 1 - Math.pow(1 - t, 2);
-  const linear   = (t: number) => t;
-
-  function morphTo(
-    card: MorphCard,
-    target: string,
-    duration: number,
-    easing: (t: number) => number,
-  ) {
-    if (card.rafId !== null) cancelAnimationFrame(card.rafId);
-
-    const from  = card.current;
-    const interp = flubberInterpolate(from, target, { maxSegmentLength: 10 });
-    const start  = performance.now();
-
-    function step(now: number) {
-      const raw = Math.min((now - start) / duration, 1);
-      const d   = interp(easing(raw));
-      card.pathEl.setAttribute('d', d);
-      card.current = d;
-      if (raw < 1) {
-        card.rafId = requestAnimationFrame(step);
-      } else {
-        card.rafId    = null;
-        card.current  = target;
-      }
-    }
-    card.rafId = requestAnimationFrame(step);
-  }
-
-  const morphCards: MorphCard[] = [];
-  allWrappers.forEach(wrapper => {
-    const mask   = wrapper.querySelector<HTMLElement>('.card-mask');
-    const pathEl = wrapper.querySelector<SVGPathElement>('clipPath path');
-    if (!pathEl || !mask) return;
-
-    // Scale 600×600 path coordinates to the card's actual pixel dimensions
-    const { width, height } = mask.getBoundingClientRect();
-    const sx = width  / 600;
-    const sy = height / 600;
-    pathEl.setAttribute('transform', `scale(${sx},${sy})`);
-
-    const card: MorphCard = { pathEl, current: DEFAULT_SHAPE, lastIdx: -1, rafId: null };
-    morphCards.push(card);
-
-    wrapper.addEventListener('mouseenter', () => {
-      let idx: number;
-      do { idx = Math.floor(Math.random() * MASK_SHAPES.length); }
-      while (MASK_SHAPES.length > 1 && idx === card.lastIdx);
-      card.lastIdx = idx;
-      morphTo(card, MASK_SHAPES[idx], 300, easeOut);
-    });
-
-    wrapper.addEventListener('mouseleave', () => {
-      morphTo(card, DEFAULT_SHAPE, 200, linear);
-    });
-  });
 </script>
