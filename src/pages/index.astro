@@ -15,7 +15,12 @@ const projects = allProjects.sort((a, b) => {
   <!-- ─── Hero section ────────────────────────────────────────── -->
   <section class="hero-section" aria-label="Site title">
     <h1 class="hero-heading">
-      <span class="hero-heading__serif">MOON.</span><span class="hero-heading__sans">WTR</span>
+      <span class="hero-heading__serif" aria-hidden="true">
+        <span class="hero-char">M</span><span class="hero-char">O</span><span class="hero-char">O</span><span class="hero-char">N</span><span class="hero-char">.</span>
+      </span><span class="hero-heading__sans" aria-hidden="true">
+        <span class="hero-char">W</span><span class="hero-char">T</span><span class="hero-char">R</span>
+      </span>
+      <span class="sr-only">MOON.WTR</span>
     </h1>
     <p class="hero-tagline">It's kinda like magic</p>
   </section>
@@ -125,6 +130,74 @@ const projects = allProjects.sort((a, b) => {
       wrap.style.transform = 'translate(-50%, -50%)';
     });
   });
+
+  // ── Hero heading: wave ripple + 3D tilt ──────────────────────────────────
+  const heroSection = document.querySelector<HTMLElement>('.hero-section');
+  const heroHeading = document.querySelector<HTMLElement>('.hero-heading');
+  const heroChars   = Array.from(document.querySelectorAll<HTMLElement>('.hero-char'));
+
+  if (heroSection && heroHeading && heroChars.length > 0) {
+    let heroRafId: number | null = null;
+    let heroMouseX = 0;
+    let heroMouseY = 0;
+    let heroActive = false;
+
+    heroSection.addEventListener('mousemove', (e: MouseEvent) => {
+      heroMouseX = e.clientX;
+      heroMouseY = e.clientY;
+      heroActive = true;
+
+      // Strip transitions during active move for responsiveness
+      heroChars.forEach(c => { c.style.transition = 'none'; });
+      heroHeading.style.transition = 'none';
+
+      if (heroRafId === null) {
+        heroRafId = requestAnimationFrame(updateHero);
+      }
+    });
+
+    heroSection.addEventListener('mouseleave', () => {
+      heroActive = false;
+      if (heroRafId !== null) {
+        cancelAnimationFrame(heroRafId);
+        heroRafId = null;
+      }
+
+      const settle = 'transform 0.6s ease-out';
+      heroChars.forEach(c => {
+        c.style.transition = settle;
+        c.style.transform = 'translateY(0) scale(1)';
+      });
+      heroHeading.style.transition = settle;
+      heroHeading.style.transform = 'perspective(800px) rotateX(0deg) rotateY(0deg)';
+    });
+
+    function updateHero() {
+      heroRafId = null;
+      if (!heroActive) return;
+
+      // Per-letter wave ripple
+      heroChars.forEach(char => {
+        const r = char.getBoundingClientRect();
+        const cx = r.left + r.width / 2;
+        const cy = r.top + r.height / 2;
+        const dist = Math.sqrt((heroMouseX - cx) ** 2 + (heroMouseY - cy) ** 2);
+        const proximity = Math.max(0, 1 - dist / 300);
+        const lift = 12 * proximity;
+        const scale = 1 + 0.08 * proximity;
+        char.style.transform = `translateY(${-lift}px) scale(${scale})`;
+      });
+
+      // Whole-heading 3D tilt
+      const hr = heroHeading!.getBoundingClientRect();
+      const centerX = hr.left + hr.width  / 2;
+      const centerY = hr.top  + hr.height / 2;
+      const rotateY = ((heroMouseX - centerX) / hr.width)  *  8;
+      const rotateX = -((heroMouseY - centerY) / hr.height) * 6;
+      heroHeading!.style.transform =
+        `perspective(800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+    }
+  }
 
   // ── Neighbor spring physics ───────────────────────────────────────────────
   const neighborTimeouts = new Map<HTMLElement, ReturnType<typeof setTimeout>[]>();

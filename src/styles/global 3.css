@@ -641,6 +641,8 @@ body {
   letter-spacing: -0.03em;
   color: var(--color-purple);
   white-space: nowrap;
+  transform-style: preserve-3d;
+  will-change: transform;
 }
 
 /* "MOON." — Poppins Black */
@@ -654,6 +656,11 @@ body {
 .hero-heading__sans {
   font-family: var(--font-ui);
   font-weight: 400;
+}
+
+.hero-char {
+  display: inline-block;
+  will-change: transform;
 }
 
 .hero-tagline {
