@@ -5,13 +5,18 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 export async function getStaticPaths() {
   const projects = await getCollection('work');
   const sorted = projects.sort((a, b) => b.data.year - a.data.year);
+  const len = sorted.length;
   return sorted.map((project, i) => ({
     params: { slug: project.id },
-    props: { project, nextProject: sorted[i + 1] ?? null },
+    props: {
+      project,
+      prevProject: sorted[(i - 1 + len) % len],
+      nextProject: sorted[(i + 1) % len],
+    },
   }));
 }
 
-const { project, nextProject } = Astro.props;
+const { project, prevProject, nextProject } = Astro.props;
 const { title, tags, year, thumbnail, description, externalUrl, intention, decisions, processImages, thread } = project.data;
 const { Content } = await render(project);
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
@@ -26,6 +31,25 @@ const ctaLabel = getCtaLabel(tags);
 ---
 
 <BaseLayout title={`${title} — Moon.WTR`} description={description}>
+
+  <!-- ─── Project nav bar ─────────────────────────────────────── -->
+  <nav class="project-nav-bar" aria-label="Project navigation">
+
+    <a href={`${base}/work/${prevProject.id}/`} class="project-nav-bar__section project-nav-bar__section--prev">
+      <span class="project-nav-bar__label">← Previous Project</span>
+      <span class="project-nav-bar__title">{prevProject.data.title}</span>
+    </a>
+
+    <a href={`${base}/`} class="project-nav-bar__section project-nav-bar__section--home">
+      <span class="project-nav-bar__home">Home</span>
+    </a>
+
+    <a href={`${base}/work/${nextProject.id}/`} class="project-nav-bar__section project-nav-bar__section--next">
+      <span class="project-nav-bar__label">Next Project →</span>
+      <span class="project-nav-bar__title">{nextProject.data.title}</span>
+    </a>
+
+  </nav>
 
   <main id="main-content">
 

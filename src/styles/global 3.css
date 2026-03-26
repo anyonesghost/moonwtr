@@ -391,19 +391,16 @@ body {
   transition: none;
 }
 
-/* Text input — vertically centered within the track */
+/* Text input — fills track height; line-height centers text against the 28px track */
 .top-bar__search-input {
   position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  right: 0;
-  width: 100%;
-  max-width: 200px;
+  inset: 0;
   background: none;
   border: none;
   padding: 0 0 0 12px;
   font-family: var(--font-ui);
-  font-size: 11px;
+  font-size: 14px;
+  line-height: 28px;
   letter-spacing: 0.06em;
   color: var(--color-purple);
   text-align: right;
@@ -1170,6 +1167,91 @@ body {
 .project-meta__cta:hover {
   background-color: var(--color-purple);
   color: #fff;
+}
+
+
+/* ==========================================================================
+   PROJECT NAV BAR
+   ========================================================================== */
+
+/* Sticky below the .sticky-cap (20px gap + 2px border + 90px header = 112px) */
+.project-nav-bar {
+  position: sticky;
+  top: 112px;
+  z-index: 90;
+  display: flex;
+  height: 90px;
+  border-bottom: 2px solid var(--color-purple);
+  background-color: var(--color-bg);
+}
+
+.project-nav-bar__section {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-decoration: none;
+  color: var(--color-text);
+  transition: background-color 200ms ease, color 200ms ease;
+}
+
+.project-nav-bar__section--prev {
+  flex: 1;
+  padding: 0 24px;
+  border-right: 2px solid var(--color-purple);
+  align-items: flex-start;
+}
+
+.project-nav-bar__section--home {
+  flex-shrink: 0;
+  width: 120px;
+  align-items: center;
+  border-right: 2px solid var(--color-purple);
+}
+
+.project-nav-bar__section--next {
+  flex: 1;
+  padding: 0 24px;
+  align-items: flex-end;
+}
+
+.project-nav-bar__section--prev:hover,
+.project-nav-bar__section--next:hover {
+  background-color: #a9e1cd;
+}
+
+.project-nav-bar__section--home:hover {
+  color: var(--color-purple);
+}
+
+.project-nav-bar__label {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--color-mid);
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.project-nav-bar__title {
+  font-family: var(--font-ui);
+  font-size: 14px;
+  font-style: italic;
+  letter-spacing: 0.02em;
+  color: var(--color-text);
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.project-nav-bar__home {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 
