@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 ---
 
 <BaseLayout title="Contact — Moon.WTR" description="Get in touch with Jay Paul Newhouse.">
@@ -7,16 +8,23 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   <main id="main-content" class="about-main">
 
     <section class="about-contact" aria-label="Contact">
+      <h1 class="contact-intro__heading">Got a project in mind?</h1>
+      <p class="contact-intro__body">I specialize in motion design, 3D rendering, and narrative-driven visuals. Whether you're looking for commercial work, a creative collaboration, or just want to say hey — I'd love to hear from you.</p>
+
       <h2 class="about-section-heading">GET IN TOUCH</h2>
       <p class="about-contact__lede">Got a project? Let's talk.</p>
       <a href="mailto:mooon.wtr@gmail.com" class="about-contact__email">mooon.wtr@gmail.com</a>
 
       <form
+        id="contact-form"
         class="about-form"
-        action="https://formspree.io/f/mooon.wtr@gmail.com"
+        action="https://formspree.io/f/mdapeneg"
         method="POST"
         aria-label="Contact form"
       >
+        <!-- Honeypot spam protection -->
+        <input type="text" name="_gotcha" style="display:none" tabindex="-1" autocomplete="off" />
+
         <div class="about-form__field">
           <label class="about-form__label" for="contact-name">NAME</label>
           <input
@@ -60,15 +68,16 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
 </BaseLayout>
 
-<script>
-  const section = document.querySelector<HTMLElement>('.about-contact');
+<script define:vars={{ base }} is:inline>
+  // ── Entrance animation ────────────────────────────────────────────────────
+  const section = document.querySelector('.about-contact');
   if (section) {
     if ('IntersectionObserver' in window) {
       const observer = new IntersectionObserver(
         (entries) => {
           entries.forEach(entry => {
             if (entry.isIntersecting) {
-              (entry.target as HTMLElement).classList.add('is-visible');
+              entry.target.classList.add('is-visible');
               observer.unobserve(entry.target);
             }
           });
@@ -79,5 +88,45 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     } else {
       section.classList.add('is-visible');
     }
+  }
+
+  // ── AJAX form submission ──────────────────────────────────────────────────
+  const form = document.getElementById('contact-form');
+  if (form) {
+    const submitButton = form.querySelector('button[type="submit"]');
+    const originalButtonText = submitButton.textContent;
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      submitButton.disabled = true;
+      submitButton.textContent = 'Sending...';
+
+      try {
+        const response = await fetch(form.action, {
+          method: 'POST',
+          body: new FormData(form),
+          headers: { 'Accept': 'application/json' },
+        });
+
+        if (response.ok) {
+          form.innerHTML = `
+            <div class="contact-success">
+              <h2 class="contact-success__heading">Message Sent</h2>
+              <p class="contact-success__body">
+                Thanks for reaching out. I'll get back to you soon.
+              </p>
+              <a href="${base}/" class="contact-success__link">← Back to Work</a>
+            </div>
+          `;
+        } else {
+          throw new Error('Submission failed');
+        }
+      } catch (error) {
+        submitButton.disabled = false;
+        submitButton.textContent = originalButtonText;
+        alert('Oops! Something went wrong. Please try again or email me directly at mooon.wtr@gmail.com');
+      }
+    });
   }
 </script>
