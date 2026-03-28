@@ -1,0 +1,83 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Contact — Moon.WTR" description="Get in touch with Jay Paul Newhouse.">
+
+  <main id="main-content" class="about-main">
+
+    <section class="about-contact" aria-label="Contact">
+      <h2 class="about-section-heading">GET IN TOUCH</h2>
+      <p class="about-contact__lede">Got a project? Let's talk.</p>
+      <a href="mailto:mooon.wtr@gmail.com" class="about-contact__email">mooon.wtr@gmail.com</a>
+
+      <form
+        class="about-form"
+        action="https://formspree.io/f/mooon.wtr@gmail.com"
+        method="POST"
+        aria-label="Contact form"
+      >
+        <div class="about-form__field">
+          <label class="about-form__label" for="contact-name">NAME</label>
+          <input
+            class="about-form__input"
+            type="text"
+            id="contact-name"
+            name="name"
+            required
+            autocomplete="name"
+          />
+        </div>
+
+        <div class="about-form__field">
+          <label class="about-form__label" for="contact-email">EMAIL</label>
+          <input
+            class="about-form__input"
+            type="email"
+            id="contact-email"
+            name="email"
+            required
+            autocomplete="email"
+          />
+        </div>
+
+        <div class="about-form__field">
+          <label class="about-form__label" for="contact-message">MESSAGE</label>
+          <textarea
+            class="about-form__input about-form__input--textarea"
+            id="contact-message"
+            name="message"
+            rows="5"
+            required
+          ></textarea>
+        </div>
+
+        <button class="about-form__submit" type="submit">SEND IT →</button>
+      </form>
+    </section>
+
+  </main>
+
+</BaseLayout>
+
+<script>
+  const section = document.querySelector<HTMLElement>('.about-contact');
+  if (section) {
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              (entry.target as HTMLElement).classList.add('is-visible');
+              observer.unobserve(entry.target);
+            }
+          });
+        },
+        { threshold: 0.1 }
+      );
+      observer.observe(section);
+    } else {
+      section.classList.add('is-visible');
+    }
+  }
+</script>
