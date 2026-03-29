@@ -570,7 +570,7 @@ body {
 .nav-menu__link {
   display: flex;
   align-items: stretch;
-  height: calc(90px / 4);
+  height: calc(90px / 3);
   text-decoration: none;
 }
 
