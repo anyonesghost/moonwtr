@@ -1974,22 +1974,48 @@ body {
     border-bottom: none;
   }
 
-  /* Number: hide on mobile to save space */
+  /* Number: small, stacked above label */
   .top-bar__nav .nav-menu__number {
-    display: none;
-  }
-
-  /* Label: centered, full width, right border separates items */
-  .top-bar__nav .nav-menu__label {
-    flex: 1;
-    justify-content: center;
-    font-size: 11px;
-    padding: 0;
-    border-right: 2px solid var(--color-purple);
+    display: flex;
+    width: auto;
+    min-width: 0;
+    font-size: 9px;
+    padding: 0 4px 0 4px;
+    border-right: none;
     border-bottom: none;
+    align-items: flex-end;
+    justify-content: center;
+    height: auto;
+    flex-shrink: 0;
   }
 
-  .top-bar__nav .nav-menu__row:last-child .nav-menu__label {
+  /* Number + label stacked vertically inside each link */
+  .top-bar__nav .nav-menu__link {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    height: 60px;
+  }
+
+  /* Label: centered, right border separates items */
+  .top-bar__nav .nav-menu__label {
+    flex: 0;
+    justify-content: center;
+    font-size: 10px;
+    padding: 0;
+    border-right: none;
+    border-bottom: none;
+    height: auto;
+    width: auto;
+  }
+
+  /* Right border on the row itself instead of label */
+  .top-bar__nav .nav-menu__row {
+    border-right: 2px solid var(--color-purple);
+  }
+
+  .top-bar__nav .nav-menu__row:last-child {
     border-right: none;
   }
 
@@ -2000,12 +2026,13 @@ body {
     display: none;
   }
 
-  /* ── Search: compact, auto width ── */
+  /* ── Search: wider to prevent icon clipping ── */
   .top-bar__search {
-    width: 80px;
+    width: 56px;
     flex-shrink: 0;
-    padding: 0 0 0 8px;
+    padding: 0 8px 0 8px;
     gap: 6px;
+    overflow: visible;
   }
 
   /* ── Grid ── */
@@ -2051,18 +2078,19 @@ body {
     grid-template-columns: 1fr;
   }
 
+  /* Hero: clean two-line break — "MOON." on one line, "WTR" on the next */
   .hero-heading {
-    font-size: clamp(3rem, 20vw, 6rem);
+    font-size: clamp(3rem, 18vw, 6rem);
     white-space: normal;
+    line-height: 0.9;
   }
 
-  /* ── Further compact search on smallest screens ── */
-  .top-bar__search {
-    width: 60px;
-    padding: 0 0 0 6px;
+  .hero-heading__serif,
+  .hero-heading__sans {
+    display: block;
   }
 
-  /* Hide filter row on smallest screens, keep search ── */
+  /* Filter row hidden on smallest screens */
   #js-filter-row {
     display: none;
   }
