@@ -185,6 +185,11 @@ body {
   border-right: 2px solid var(--color-purple);
 }
 
+/* Ensure the nav wrapper fills the full cell height so the grid's height: 100% resolves correctly */
+.top-bar__nav .nav-menu {
+  height: 100%;
+}
+
 /* Nav grid becomes a flex column filling the full nav cell height */
 .top-bar__nav .nav-menu__grid {
   display: flex;
