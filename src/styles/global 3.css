@@ -1926,19 +1926,115 @@ body {
     --space-6: 24px;
   }
 
+  /* ── Page frame: remove side margins so content fills screen ── */
+  .page-frame {
+    margin: 0;
+    border-left: none;
+    border-right: none;
+  }
+
+  /* ── Sticky cap: no top gap on mobile ── */
+  .sticky-cap {
+    padding-top: 0;
+    margin-top: 0;
+  }
+
+  /* ── Header: single compact row at 60px ── */
+  .top-bar {
+    height: 60px;
+    flex-wrap: nowrap;
+  }
+
+  /* ── Nav: horizontal row of 3 items ── */
+  .top-bar__nav {
+    width: auto;
+    height: 60px;
+    flex: 1;           /* takes all remaining space */
+    min-width: 0;
+  }
+
+  .top-bar__nav .nav-menu {
+    height: 100%;
+  }
+
+  .top-bar__nav .nav-menu__grid {
+    flex-direction: row; /* horizontal instead of vertical */
+    height: 60px;
+  }
+
+  .top-bar__nav .nav-menu__row {
+    flex: 1;
+    height: 60px;
+    border-bottom: none;
+  }
+
+  /* Remove last-child bottom border override on mobile */
+  .top-bar__nav .nav-menu__row:last-child .nav-menu__number,
+  .top-bar__nav .nav-menu__row:last-child .nav-menu__label {
+    border-bottom: none;
+  }
+
+  /* Number: hide on mobile to save space */
+  .top-bar__nav .nav-menu__number {
+    display: none;
+  }
+
+  /* Label: centered, full width, right border separates items */
+  .top-bar__nav .nav-menu__label {
+    flex: 1;
+    justify-content: center;
+    font-size: 11px;
+    padding: 0;
+    border-right: 2px solid var(--color-purple);
+    border-bottom: none;
+  }
+
+  .top-bar__nav .nav-menu__row:last-child .nav-menu__label {
+    border-right: none;
+  }
+
+  /* ── Hide sections that don't fit ── */
+  .top-bar__logo,
+  .top-bar__social,
+  .top-bar__tagline {
+    display: none;
+  }
+
+  /* ── Search: compact, auto width ── */
+  .top-bar__search {
+    width: 80px;
+    flex-shrink: 0;
+    padding: 0 0 0 8px;
+    gap: 6px;
+  }
+
+  /* ── Grid ── */
   .project-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 12px;
   }
 
-  .top-bar {
-    flex-wrap: wrap;
+  /* ── Project nav bar ── */
+  .project-nav-bar {
+    height: auto;
+    min-height: 60px;
+    top: 62px; /* 60px header + 2px border */
   }
 
-  .top-bar__tagline {
-    display: none;
+  .project-nav-bar__section--prev,
+  .project-nav-bar__section--next {
+    padding: 10px 12px;
   }
 
+  .project-nav-bar__section--home {
+    width: 70px;
+  }
+
+  .project-nav-bar__title {
+    font-size: 11px;
+  }
+
+  /* ── Footer ── */
   .site-footer__inner {
     flex-direction: column;
     align-items: flex-start;
@@ -1958,5 +2054,16 @@ body {
   .hero-heading {
     font-size: clamp(3rem, 20vw, 6rem);
     white-space: normal;
+  }
+
+  /* ── Further compact search on smallest screens ── */
+  .top-bar__search {
+    width: 60px;
+    padding: 0 0 0 6px;
+  }
+
+  /* Hide filter row on smallest screens, keep search ── */
+  #js-filter-row {
+    display: none;
   }
 }
