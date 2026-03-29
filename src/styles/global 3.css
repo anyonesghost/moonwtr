@@ -240,10 +240,10 @@ body {
   padding: 0 6px 0 0;
 }
 
-/* Last row: no bottom border — bar's 5px bottom border is the boundary */
+/* Last row: border-bottom matches the other cells — header bottom border closes the nav */
 .top-bar__nav .nav-menu__row:last-child .nav-menu__number,
 .top-bar__nav .nav-menu__row:last-child .nav-menu__label {
-  border-bottom: none;
+  border-bottom: 2px solid var(--color-purple);
 }
 
 .top-bar__nav .nav-menu__row:hover .nav-menu__number {
