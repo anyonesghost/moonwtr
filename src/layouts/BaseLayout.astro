@@ -116,7 +116,7 @@ const projectsJson = JSON.stringify(projectsData);
       <!-- ─── Filter strip ──────────────────────────────────────── -->
       <div class="filter-strip" id="js-filter-strip" aria-hidden="true">
         <div class="filter-strip__inner">
-          {['ALL', '3D', 'FILM', 'GAME', 'BUILD', 'VIDEO'].map(tag => (
+          {['ALL', '3D', 'GAME', 'BUILD', 'VIDEO'].map(tag => (
             <button
               class={`filter-strip__tag${tag === 'ALL' ? ' is-active' : ''}`}
               data-filter={tag.toLowerCase()}

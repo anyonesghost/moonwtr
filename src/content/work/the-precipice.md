@@ -1,6 +1,6 @@
 ---
 title: "The Precipice"
-tags: ["3D", "Film"]
+tags: ["3D"]
 year: 2024
 description: "A lone figure stands before towering monoliths framing a golden desert horizon. The brightest threshold in the series — and the most uncertain."
 thumbnail: ./the-precipice/The_Precipice.png
