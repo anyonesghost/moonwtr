@@ -180,6 +180,7 @@ body {
 .top-bar__nav {
   flex-shrink: 0;
   width: 118px;
+  height: 120px;
   overflow: hidden;
   border-right: 2px solid var(--color-purple);
 }
