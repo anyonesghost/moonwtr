@@ -169,7 +169,7 @@ body {
   align-items: stretch;
   width: 100%;
   max-width: none;
-  height: 90px;
+  height: 120px;
   border-bottom: 2px solid var(--color-purple);
   background-color: var(--color-bg);
   box-sizing: border-box;
@@ -260,8 +260,8 @@ body {
 
 .top-bar__logo {
   flex-shrink: 0;
-  width: 90px;
-  height: 90px;
+  width: 120px;
+  height: 120px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -273,8 +273,8 @@ body {
 
 .top-bar__social {
   flex-shrink: 0;
-  width: 90px;
-  height: 90px;
+  width: 120px;
+  height: 120px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -570,7 +570,7 @@ body {
 .nav-menu__link {
   display: flex;
   align-items: stretch;
-  height: calc(90px / 3);
+  height: calc(120px / 3);
   text-decoration: none;
 }
 
@@ -1187,13 +1187,13 @@ body {
    PROJECT NAV BAR
    ========================================================================== */
 
-/* Sticky below the .sticky-cap (20px gap + 2px border + 90px header = 112px) */
+/* Sticky below the .sticky-cap (20px gap + 2px border + 120px header = 142px) */
 .project-nav-bar {
   position: sticky;
-  top: 112px;
+  top: 142px;
   z-index: 90;
   display: flex;
-  height: 90px;
+  height: 120px;
   border-bottom: 2px solid var(--color-purple);
   background-color: var(--color-bg);
 }
