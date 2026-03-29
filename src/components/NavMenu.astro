@@ -5,17 +5,28 @@ const items = [
   { number: '02', label: 'About',   href: `${base}/about/` },
   { number: '03', label: 'Contact', href: `${base}/contact/` },
 ];
+
+const pathname = Astro.url.pathname.replace(/\/?$/, '/'); // normalise trailing slash
 ---
 
 <nav class="nav-menu" aria-label="Site sections">
   <ul class="nav-menu__grid" role="list">
-    {items.map(({ number, label, href }) => (
-      <li class="nav-menu__row">
-        <a href={href} class="nav-menu__link">
-          <span class="nav-menu__number" aria-hidden="true">{number}</span>
-          <span class="nav-menu__label">{label}</span>
-        </a>
-      </li>
-    ))}
+    {items.map(({ number, label, href }) => {
+      const hrefNorm = href.replace(/\/?$/, '/');
+      const isActive = pathname === hrefNorm
+        || (hrefNorm !== `${base}/` && pathname.startsWith(hrefNorm));
+      return (
+        <li class="nav-menu__row">
+          <a
+            href={href}
+            class="nav-menu__link"
+            aria-current={isActive ? 'page' : undefined}
+          >
+            <span class="nav-menu__number" aria-hidden="true">{number}</span>
+            <span class="nav-menu__label">{label}</span>
+          </a>
+        </li>
+      );
+    })}
   </ul>
 </nav>

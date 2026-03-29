@@ -621,6 +621,19 @@ body {
   font-style: italic;
 }
 
+/* ── Active / current page ── */
+
+.top-bar__nav .nav-menu__link[aria-current="page"] .nav-menu__number {
+  background-color: var(--color-purple);
+  color: #fff;
+}
+
+.top-bar__nav .nav-menu__link[aria-current="page"] .nav-menu__label {
+  border-bottom-color: var(--color-purple);
+  border-bottom-width: 2px;
+  font-style: italic;
+}
+
 
 /* ==========================================================================
    HERO SECTION
