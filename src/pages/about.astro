@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 ---
 
 <BaseLayout title="About — Moon.WTR" description="Jay Paul Newhouse — motion, music, games, worlds, and machines.">
@@ -77,6 +78,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       </div>
     </section>
 
+    <!-- ─── Section 4: Contact CTA ───────────────────────────────── -->
+    <section class="about-contact" aria-label="Contact call to action">
+      <h2 class="about-contact__heading">GOT A PROJECT?</h2>
+      <p class="about-contact__sub">Reach out and let's talk.</p>
+      <a href={`${base}/contact/`} class="about-contact__link">GET IN TOUCH</a>
+    </section>
 
   </main>
 
@@ -85,7 +92,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 <script>
   // ── Fade-up entrance for about sections ────────────────────────────────────
   const sections = document.querySelectorAll<HTMLElement>(
-    '.about-identity, .about-bio, .about-services'
+    '.about-identity, .about-bio, .about-services, .about-contact'
   );
 
   if ('IntersectionObserver' in window) {

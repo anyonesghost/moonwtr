@@ -1733,6 +1733,39 @@ body {
   padding: var(--space-8) var(--space-6);
 }
 
+.about-contact__heading {
+  font-family: var(--font-ui);
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--color-text);
+  margin-bottom: var(--space-2);
+}
+
+.about-contact__sub {
+  font-family: var(--font-ui);
+  font-size: 14px;
+  color: var(--color-mid);
+  margin-bottom: var(--space-6);
+}
+
+.about-contact__link {
+  display: inline-block;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--color-text);
+  border: 2px solid var(--color-purple);
+  padding: var(--space-2) var(--space-4);
+  transition: background-color 200ms ease, color 200ms ease;
+}
+
+.about-contact__link:hover {
+  background-color: var(--color-purple);
+  color: var(--color-bg);
+}
+
 /* ── Contact page intro ── */
 
 .contact-intro__heading {
