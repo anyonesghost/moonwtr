@@ -285,5 +285,24 @@ const projectsJson = JSON.stringify(projectsData);
       });
     });
   });
+
+  // ── Deep-link filter on page load ────────────────────────────────────────
+  const urlFilter = new URLSearchParams(window.location.search).get('filter');
+  if (urlFilter && filterStrip) {
+    const matchBtn = filterStrip.querySelector<HTMLButtonElement>(
+      `.filter-strip__tag[data-filter="${urlFilter}"]`
+    );
+    if (matchBtn) {
+      filterStrip.classList.add('is-open');
+      filterStrip.setAttribute('aria-hidden', 'false');
+      filterStrip.querySelectorAll('.filter-strip__tag').forEach(b => b.classList.remove('is-active'));
+      matchBtn.classList.add('is-active');
+      gridItems.forEach(item => {
+        const tags = item.dataset.tags ?? '';
+        const visible = urlFilter === 'all' || tags.split(',').includes(urlFilter);
+        item.style.display = visible ? '' : 'none';
+      });
+    }
+  }
 </script>
 </html>
