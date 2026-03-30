@@ -77,32 +77,42 @@ const projectsJson = JSON.stringify(projectsData);
 
         <div class="top-bar__search" data-projects={projectsJson}>
 
-          <div class="top-bar__search-row" id="js-search-row">
-            <span class="icon icon--search" aria-hidden="true"></span>
-            <div class="top-bar__search-track">
-              <div class="top-bar__search-line"></div>
-              <button class="top-bar__search-pill" aria-label="Open search" type="button">
-                SEARCH
-              </button>
-              <input
-                type="search"
-                class="top-bar__search-input"
-                id="js-search-input"
-                placeholder="TYPE TO SEARCH..."
-                aria-label="Search projects"
-              />
-            </div>
-          </div>
+          <!-- Mobile-only caret: collapses search + filter into a dropdown -->
+          <button class="mobile-tools-toggle" id="js-mobile-toggle" type="button" aria-label="Toggle search and filter" aria-expanded="false">
+            <span class="mobile-tools-toggle__caret" aria-hidden="true">▾</span>
+          </button>
 
-          <div class="top-bar__search-row" id="js-filter-row">
-            <span class="icon icon--filter" aria-hidden="true"></span>
-            <div class="top-bar__search-track">
-              <div class="top-bar__search-line"></div>
-              <button class="top-bar__search-pill" aria-label="Filter projects" type="button" id="js-filter-btn">
-                FILTER
-              </button>
+          <!-- Panel: wraps search + filter rows; drops below header on mobile -->
+          <div class="top-bar__tools-panel" id="js-tools-panel">
+
+            <div class="top-bar__search-row" id="js-search-row">
+              <span class="icon icon--search" aria-hidden="true"></span>
+              <div class="top-bar__search-track">
+                <div class="top-bar__search-line"></div>
+                <button class="top-bar__search-pill" aria-label="Open search" type="button">
+                  SEARCH
+                </button>
+                <input
+                  type="search"
+                  class="top-bar__search-input"
+                  id="js-search-input"
+                  placeholder="TYPE TO SEARCH..."
+                  aria-label="Search projects"
+                />
+              </div>
             </div>
-          </div>
+
+            <div class="top-bar__search-row" id="js-filter-row">
+              <span class="icon icon--filter" aria-hidden="true"></span>
+              <div class="top-bar__search-track">
+                <div class="top-bar__search-line"></div>
+                <button class="top-bar__search-pill" aria-label="Filter projects" type="button" id="js-filter-btn">
+                  FILTER
+                </button>
+              </div>
+            </div>
+
+          </div><!-- /.top-bar__tools-panel -->
 
           <!-- Search dropdown -->
           <div class="search-dropdown" id="js-search-dropdown" role="listbox" aria-label="Search results">
@@ -304,5 +314,20 @@ const projectsJson = JSON.stringify(projectsData);
       });
     }
   }
+
+  // ── Mobile tools panel ───────────────────────────────────────────────────
+  const mobileToggle = document.getElementById('js-mobile-toggle') as HTMLButtonElement | null;
+
+  mobileToggle?.addEventListener('click', () => {
+    const isOpen = searchContainer?.classList.toggle('is-open');
+    mobileToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  });
+
+  document.addEventListener('click', (e: MouseEvent) => {
+    if (searchContainer?.classList.contains('is-open') && !searchContainer.contains(e.target as Node)) {
+      searchContainer.classList.remove('is-open');
+      mobileToggle?.setAttribute('aria-expanded', 'false');
+    }
+  });
 </script>
 </html>

@@ -336,6 +336,23 @@ body {
   overflow: visible;
 }
 
+/* Mobile caret trigger — hidden on desktop */
+.mobile-tools-toggle {
+  display: none;
+}
+
+/* Panel wrapping search + filter rows.
+   On desktop: transparent flex pass-through so rows behave as
+   direct children of .top-bar__search (gap / justify-content apply normally).
+   On mobile: becomes an absolute dropdown panel below the header. */
+.top-bar__tools-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+  flex: 1;
+}
+
 .top-bar__search-row {
   display: flex;
   align-items: center;
@@ -2059,13 +2076,75 @@ body {
     display: none;
   }
 
-  /* ── Search: wider to prevent icon clipping ── */
+  /* ── Search: collapse to caret trigger ── */
   .top-bar__search {
-    width: 56px;
+    width: 44px;
     flex-shrink: 0;
-    padding: 0 8px 0 8px;
-    gap: 6px;
-    overflow: visible;
+    padding: 0;
+    gap: 0;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Caret button */
+  .mobile-tools-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 60px;
+    flex-shrink: 0;
+    color: var(--color-purple);
+    font-family: var(--font-ui);
+    font-size: 20px;
+  }
+
+  .mobile-tools-toggle__caret {
+    display: inline-block;
+    transition: transform 200ms ease;
+    line-height: 1;
+  }
+
+  .top-bar__search.is-open .mobile-tools-toggle__caret {
+    transform: rotate(180deg);
+  }
+
+  /* Tools panel: absolute dropdown below header */
+  .top-bar__tools-panel {
+    position: absolute;
+    top: 60px; /* flush below 60px header */
+    right: 0;
+    width: 100vw;
+    background: var(--color-bg);
+    border-bottom: 2px solid var(--color-purple);
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 280ms ease;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 0;
+    flex: none;
+    z-index: 50;
+  }
+
+  .top-bar__search.is-open .top-bar__tools-panel {
+    max-height: 116px; /* two 52px rows + 2px border-bottom */
+  }
+
+  /* Rows inside panel: full-width, ≥44px touch target */
+  .top-bar__tools-panel .top-bar__search-row {
+    height: 52px;
+    padding: 0 16px;
+    border-bottom: 1px solid rgba(123, 47, 190, 0.2);
+  }
+
+  .top-bar__tools-panel .top-bar__search-row:last-child {
+    border-bottom: none;
+  }
+
+  /* Search dropdown not usable at mobile viewport widths */
+  .search-dropdown {
+    display: none;
   }
 
   /* ── Grid ── */
@@ -2123,8 +2202,4 @@ body {
     display: block;
   }
 
-  /* Filter row hidden on smallest screens */
-  #js-filter-row {
-    display: none;
-  }
 }
