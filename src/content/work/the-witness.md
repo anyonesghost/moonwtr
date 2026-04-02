@@ -5,6 +5,7 @@ year: 2025
 description: "It has always been there. Just beyond the light. You felt it before you saw it. When you looked again, the forest gave nothing away."
 thumbnail: "./thumbnails/the-witness-thumb.jpg"
 featured: true
+order: 7
 intention: "I wanted to recreate a feeling most people have had but never been able to explain. You're walking somewhere familiar at night and something changes. Not dramatically — just a shift in the air. You catch something at the edge of your vision. When you turn, there's nothing there. But there's a light. And it's calling to you. This piece is about that moment between seeing and not seeing. Between following and standing still."
 
 decisions:

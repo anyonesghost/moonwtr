@@ -5,6 +5,7 @@ year: 2025
 description: "To carry the weight of opposing worlds is not a burden given, it is a burden chosen."
 thumbnail: "./thumbnails/the-convergence-thumb.png"
 featured: true
+order: 4
 intention: "I wanted to build a place that made the weight of a decision visible. Not the decision itself — the weight. You can see in the figure's posture that they've already chosen. They're standing at the edge, not deliberating. The deliberation is over. What remains is the enormousness of what comes next, rendered in stone and light and the specific silence of a place that has witnessed this moment before. Many times. With many different figures."
 
 decisions:

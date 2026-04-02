@@ -5,6 +5,7 @@ year: 2024
 description: "A lone figure stands before towering monoliths framing a golden desert horizon. The brightest threshold in the series — and the most uncertain."
 thumbnail: ./the-precipice/The_Precipice.png
 featured: false
+order: 8
 intention: "I wanted to make something that felt like an exhale. Every other piece in this series lives in darkness — forests at night, cave systems, deep space, dense canopy. This one opens up. The sky is present. The horizon exists. You can see where you are. But the opening between the monoliths is still a question, and the orb hanging in the gap still doesn't explain itself. The brightness isn't safety. It's just a different kind of unknown."
 decisions:
   - label: "LIGHT"

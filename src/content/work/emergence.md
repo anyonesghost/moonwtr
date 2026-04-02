@@ -5,6 +5,7 @@ year: 2025
 description: "It has been dormant. It now awakens."
 thumbnail: "./thumbnails/emergence-thumb.png"
 featured: true
+order: 5
 intention: "I wanted the viewer to feel like they were witnessing something private. Something that wasn't meant to be seen. Not a dramatic reveal — more like you turned a corner and caught a moment of becoming. The discomfort of watching something wake up before it knows you're there."
 decisions:
   - label: "LIGHTING"

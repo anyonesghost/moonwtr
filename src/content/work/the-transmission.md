@@ -5,6 +5,7 @@ year: 2025
 description: "It broadcast. Someone finally heard."
 thumbnail: "./thumbnails/the-transmission-thumb.png"
 featured: true
+order: 6
 intention: "I wanted to make someone feel genuinely small. Not scared — small in the way that looking at the actual night sky makes you small. The kind of small that feels clarifying rather than threatening. The traveller has been searching for something. They found it. And the moment they arrived, eleven years of silence ended. The station had been waiting for exactly this. So had the message."
 
 decisions:

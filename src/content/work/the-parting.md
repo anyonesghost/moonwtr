@@ -5,6 +5,7 @@ year: 2025
 description: "A figure pauses at the threshold of the old wood. Whether arriving or leaving, the forest does not say."
 thumbnail: "./thumbnails/the-parting-thumb.png"
 featured: true
+order: 2
 intention: "I wanted to build a place that had been forgotten by everyone except the things that grow. The gate is still standing — barely — but the forest made its decision about this place a long time ago. The tree didn't grow around the gate by accident. It grew through it, into it, because of it. Whatever this place was sacred for, the forest is the only keeper of that memory now. You can pass through. Whether you should is a different question."
 
 decisions:

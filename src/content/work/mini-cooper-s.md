@@ -5,6 +5,7 @@ year: 2024
 description: "A heavily modified R53 with Marathon game lore livery. Ongoing build documentation."
 thumbnail: "./thumbnails/mini-cooper-s-thumb.svg"
 featured: false
+order: 9
 ---
 
 ## Overview

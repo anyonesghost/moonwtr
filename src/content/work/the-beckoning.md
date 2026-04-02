@@ -5,6 +5,7 @@ year: 2025
 description: "The flowers grow towards it. The water flows towards it. Everything yearning to be one with that which is beyond the gate. The only question is: do you?"
 thumbnail: "./thumbnails/the-beckoning-thumb.png"
 featured: true
+order: 3
 intention: "I wanted to build a place that felt genuinely worth going to. Not threatening, not ominous — inviting. The kind of place you'd step toward without deciding to. The gate isn't a warning. It's a promise. Whether it keeps that promise is something the image refuses to answer, and that refusal is the whole point."
 
 decisions:

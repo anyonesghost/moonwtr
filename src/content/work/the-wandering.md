@@ -5,6 +5,7 @@ year: 2025
 description: "Nature's beauty does not ask how you're doing."
 thumbnail: "./thumbnails/the-wandering-thumb.png"
 featured: true
+order: 1
 intention: "I wanted to make something that felt like a gift before it felt like a warning. The first read is pure — golden light, untouched wilderness, the specific peace of a place that has never had a building in it. I wanted you to exhale. And then I wanted you to notice. Because once you see the figure, you cannot unsee it. And suddenly the peace has a question inside it: how long has it been standing there?"
 
 decisions:

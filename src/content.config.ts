@@ -8,8 +8,9 @@
  * Entry IDs are derived from the filename (without extension),
  * e.g. "meridian-brand-identity" from meridian-brand-identity.md
  */
-import { defineCollection, z } from 'astro:content';
+import { defineCollection } from 'astro:content';
 import { glob } from 'astro/loaders';
+import { z } from 'zod';
 
 const work = defineCollection({
   loader: glob({
@@ -39,6 +40,9 @@ const work = defineCollection({
 
       /** Flag for promoting to a featured / hero slot */
       featured: z.boolean().default(false),
+
+      /** Explicit display order in the grid (lower = earlier) */
+      order: z.number().int().optional(),
 
       /** Optional external link for the project (live site, video, etc.) */
       externalUrl: z.string().url().optional(),
