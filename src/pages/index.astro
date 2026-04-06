@@ -75,19 +75,14 @@ const projects = (await getCollection('work'))
   interface CardEntry {
     wrapper: HTMLElement;
     wrap: HTMLElement; // .card-image-wrap — JS target for drift
-    baseY: string;     // vertical anchor for the parallax origin
   }
 
   const allWrappers = Array.from(document.querySelectorAll<HTMLElement>('.card-wrapper'));
 
-  const cardEntries: CardEntry[] = allWrappers.map(wrapper => {
-    const slug = wrapper.querySelector<HTMLElement>('.project-card')?.dataset.slug ?? '';
-    return {
-      wrapper,
-      wrap: wrapper.querySelector<HTMLElement>('.card-image-wrap')!,
-      baseY: slug === 'the-transmission' ? '-35%' : '-50%',
-    };
-  }).filter(e => e.wrap !== null);
+  const cardEntries: CardEntry[] = allWrappers.map(wrapper => ({
+    wrapper,
+    wrap: wrapper.querySelector<HTMLElement>('.card-image-wrap')!,
+  })).filter(e => e.wrap !== null);
 
   let rafId: number | null = null;
   let mouseX = 0;
@@ -104,7 +99,7 @@ const projects = (await getCollection('work'))
   function updateDrift() {
     rafId = null;
 
-    cardEntries.forEach(({ wrapper, wrap, baseY }) => {
+    cardEntries.forEach(({ wrapper, wrap }) => {
       const rect = wrapper.getBoundingClientRect();
       const cx = rect.left + rect.width / 2;
       const cy = rect.top + rect.height / 2;
@@ -118,18 +113,18 @@ const projects = (await getCollection('work'))
         const driftX = dx * DRIFT_STRENGTH * strength;
         const driftY = dy * DRIFT_STRENGTH * strength;
         wrap.style.transition = 'none';
-        wrap.style.transform = `translate(calc(-50% + ${driftX}px), calc(${baseY} + ${driftY}px))`;
+        wrap.style.transform = `translate(calc(-50% + ${driftX}px), calc(-50% + ${driftY}px))`;
       } else {
         wrap.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
-        wrap.style.transform = `translate(-50%, ${baseY})`;
+        wrap.style.transform = 'translate(-50%, -50%)';
       }
     });
   }
 
   document.addEventListener('mouseleave', () => {
-    cardEntries.forEach(({ wrap, baseY }) => {
+    cardEntries.forEach(({ wrap }) => {
       wrap.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
-      wrap.style.transform = `translate(-50%, ${baseY})`;
+      wrap.style.transform = 'translate(-50%, -50%)';
     });
   });
 
