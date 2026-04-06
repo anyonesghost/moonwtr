@@ -14,7 +14,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 
 <div class="card-wrapper">
 
-<article class="project-card" data-featured={featured}>
+<article class="project-card" data-featured={featured} data-slug={slug}>
   <a href={`${base}/work/${slug}/`} class="project-card__link">
 
     <div class="card-mask">
