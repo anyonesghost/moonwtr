@@ -85,7 +85,7 @@ const projects = (await getCollection('work'))
     return {
       wrapper,
       wrap: wrapper.querySelector<HTMLElement>('.card-image-wrap')!,
-      baseY: slug === 'the-transmission' ? '-65%' : '-50%',
+      baseY: slug === 'the-transmission' ? '-35%' : '-50%',
     };
   }).filter(e => e.wrap !== null);
 

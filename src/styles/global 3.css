@@ -792,10 +792,6 @@ body {
   display: block;
 }
 
-.project-card[data-slug="the-transmission"] .card-image {
-  object-position: top center;
-}
-
 /* Overlay — fades in on hover */
 .card-overlay {
   position: absolute;
