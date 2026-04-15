@@ -5,7 +5,7 @@ year: 2025
 description: "A web-based text adventure with four endings, ambient audio, and full localStorage persistence."
 thumbnail: "./thumbnails/drift-thumb.svg"
 featured: true
-order: 10
+order: 11
 externalUrl: "https://terminal.moonwtr.xyz"
 ---
 
