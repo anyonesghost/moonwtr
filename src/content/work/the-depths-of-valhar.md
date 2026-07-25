@@ -6,7 +6,7 @@ description: "The gate does not open, it was always open. Stand at the threshold
 thumbnail: "./the-depths-of-valhar-thumb.png"
 hoverImage: "./the-depths-of-valhar-thumb.png"
 featured: false
-order: 0
+order: -4
 
 intention: "This piece is meant to give a sense of unease — the fog, the eerie red glow, the unnatural island. Something lost to time, but never forgotten. It exists in a place no one remembers the word for, but nobody forgets the feeling."
 

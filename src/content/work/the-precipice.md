@@ -2,11 +2,11 @@
 title: "The Precipice"
 tags: ["3D"]
 year: 2024
-description: "A lone figure stands before towering monoliths framing a golden desert horizon. The brightest threshold in the series — and the most uncertain."
+description: "“Studying what exactly?” Xiam asked. “That's the thing, even after all this time, I'm still not sure. I've been spending my every waking breath for this sole purpose. I have theories, things I've probed and tested, but none of them proven.”"
 thumbnail: ./the-precipice/The_Precipice.png
 featured: false
 order: 9
-intention: "I wanted to make something that felt like an exhale. Every other piece in this series lives in darkness — forests at night, cave systems, deep space, dense canopy. This one opens up. The sky is present. The horizon exists. You can see where you are. But the opening between the monoliths is still a question, and the orb hanging in the gap still doesn't explain itself. The brightness isn't safety. It's just a different kind of unknown."
+intention: "I wanted to make something that felt like an exhale. Every other piece in this series lives in darkness — forests at night, cave systems, deep space, dense canopy. This one opens up. The sky is present. The horizon exists. You can see where you are. But the opening between the monoliths is still a question, and the orb hanging in the gap still doesn't explain itself. The brightness isn't safety. It's just a different kind of unknown.\n\n* Looking back, this was the turning point — my art had been leaning this direction for a while, but it kept evading me until this piece. Putting that orb in the distance was a random decision. I didn't realize until later that I was standing at the actual precipice of my own world-building — the lore, the universe, all of it starting here."
 decisions:
   - label: "LIGHT"
     body: "For the first time in this series the primary light source is the sky itself — ambient, total, coming from everywhere and nowhere. Previous pieces used single point sources to create drama through shadow. Here the drama comes from what the light reveals: how vast the space is, how small the figure is, how far the desert stretches beyond the gap. The warm golden tones were chosen to feel genuinely inviting — I wanted the viewer to want to walk toward it, which makes the uncertainty of what lies beyond more interesting than threatening."
