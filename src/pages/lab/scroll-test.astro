@@ -1,0 +1,507 @@
+---
+// Throwaway prototype: scroll-scrubbed render sequence.
+// Standalone on purpose — no BaseLayout, no global styles, no nav.
+// Frames come from `node scripts/convert-frames.mjs`; hotspots.json from
+// scripts/blender/export-hotspots.py (optional — page works without it).
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Lab — scroll test</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;1,400&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+
+  <body>
+    <main class="scroller" id="scroller">
+      <div class="stage" id="stage">
+        <canvas id="canvas" aria-label="Scroll-driven render sequence"></canvas>
+        <div class="hotspots" id="hotspots" aria-hidden="true"></div>
+        <div class="grain" aria-hidden="true"></div>
+      </div>
+    </main>
+
+    <div class="rail" id="rail" aria-hidden="true">
+      <div class="rail__track"></div>
+      <div class="rail__orb" id="orb"></div>
+    </div>
+
+    <pre class="hud" id="hud">loading…</pre>
+
+    <style is:global>
+      :root {
+        /* DESIGN.md poles, inverted for a dark stage */
+        --bg: #1a1a1a;
+        --text: #f5f2ed;
+        --mid: #888888;
+        --gold: #d9b25f;
+        --ease: cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      html {
+        background: var(--bg);
+        scrollbar-width: none; /* replaced by the custom rail */
+      }
+      html::-webkit-scrollbar {
+        display: none;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: 'Space Mono', ui-monospace, monospace;
+        font-size: 11px;
+        letter-spacing: 0.03em;
+      }
+
+      /* Scroll length — the page's only "duration" knob. */
+      .scroller {
+        height: 600vh;
+      }
+
+      .stage {
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        height: 100dvh;
+        overflow: hidden;
+        background: var(--bg);
+      }
+
+      #canvas {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+
+      /* ---- hotspots ---- */
+      .hotspots {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+      }
+      .hotspot {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 0;
+        height: 0;
+        opacity: 0;
+        transition: opacity 200ms var(--ease);
+        will-change: transform;
+      }
+      .hotspot.is-visible {
+        opacity: 1;
+      }
+      .hotspot__dot {
+        position: absolute;
+        left: -5px;
+        top: -5px;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--text);
+        box-shadow: 0 0 0 1px rgba(26, 26, 26, 0.5), 0 0 12px 2px rgba(245, 242, 237, 0.6);
+      }
+      .hotspot__dot::after {
+        content: '';
+        position: absolute;
+        inset: -7px;
+        border: 1px solid var(--text);
+        border-radius: 50%;
+        opacity: 0.5;
+        animation: hotspot-pulse 2.4s var(--ease) infinite;
+      }
+      .hotspot__label {
+        position: absolute;
+        left: 16px;
+        top: -8px;
+        white-space: nowrap;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        text-shadow: 0 0 6px var(--bg), 0 0 2px var(--bg);
+      }
+      @keyframes hotspot-pulse {
+        0% {
+          transform: scale(0.6);
+          opacity: 0.7;
+        }
+        100% {
+          transform: scale(1.8);
+          opacity: 0;
+        }
+      }
+
+      /* ---- film grain ---- */
+      .grain {
+        position: absolute;
+        inset: -100px;
+        pointer-events: none;
+        opacity: 0.11;
+        mix-blend-mode: overlay;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 1.4 -0.2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        background-size: 240px 240px;
+        animation: grain-shift 0.9s steps(1) infinite;
+      }
+      @keyframes grain-shift {
+        0% {
+          transform: translate(0, 0);
+        }
+        12% {
+          transform: translate(-37px, 61px);
+        }
+        25% {
+          transform: translate(52px, -24px);
+        }
+        37% {
+          transform: translate(-71px, -48px);
+        }
+        50% {
+          transform: translate(23px, 77px);
+        }
+        62% {
+          transform: translate(-58px, 14px);
+        }
+        75% {
+          transform: translate(66px, 43px);
+        }
+        87% {
+          transform: translate(-12px, -69px);
+        }
+      }
+
+      /* ---- custom scrollbar ---- */
+      .rail {
+        position: fixed;
+        top: 24px;
+        bottom: 24px;
+        right: 8px;
+        width: 32px;
+        z-index: 10;
+        cursor: pointer;
+        touch-action: none;
+      }
+      .rail__track {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 50%;
+        width: 1px;
+        background: rgba(245, 242, 237, 0.55);
+        box-shadow: 0 0 6px 1px rgba(245, 242, 237, 0.35), 0 0 18px 2px rgba(217, 178, 95, 0.25);
+      }
+      .rail__orb {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        width: 14px;
+        height: 14px;
+        margin: -7px 0 0 -7px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 35% 30%, #fff3cf 0%, var(--gold) 45%, #8a6a24 100%);
+        box-shadow: 0 0 10px 2px rgba(217, 178, 95, 0.8), 0 0 28px 8px rgba(217, 178, 95, 0.3);
+        will-change: transform;
+      }
+
+      /* ---- debug HUD ---- */
+      .hud {
+        position: fixed;
+        left: 16px;
+        bottom: 16px;
+        z-index: 10;
+        margin: 0;
+        padding: 8px;
+        font: inherit;
+        line-height: 1.6;
+        color: var(--text);
+        background: rgba(26, 26, 26, 0.7);
+        pointer-events: none;
+      }
+      .hud b {
+        font-weight: 400;
+        color: var(--mid);
+      }
+
+      @media (max-width: 768px) {
+        .rail {
+          right: 0;
+          width: 24px;
+        }
+        .hotspot__label {
+          display: none;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .grain,
+        .hotspot__dot::after {
+          animation: none;
+        }
+        .hotspot {
+          transition: none;
+        }
+      }
+    </style>
+
+    <script>
+      type Manifest = {
+        frames: string[];
+        variants: Record<string, { width: number; height: number }>;
+      };
+      type Hotspot = { x: number; y: number; visible: boolean; occluded?: boolean | null };
+      type Hotspots = { frames: Record<string, Record<string, Hotspot>> };
+
+      const ROOT = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/lab/scroll-test`;
+      const SPARSE_COUNT = 8; // frames in the first (sparse) preload pass
+      const CONCURRENCY = 4;
+      const SMOOTHING = 0.18; // 1 = no easing between scroll target and drawn frame
+
+      const scroller = document.getElementById('scroller')!;
+      const stage = document.getElementById('stage')!;
+      const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+      const ctx = canvas.getContext('2d')!;
+      const hotspotLayer = document.getElementById('hotspots')!;
+      const rail = document.getElementById('rail')!;
+      const orb = document.getElementById('orb')!;
+      const hud = document.getElementById('hud')!;
+
+      const mobileQuery = window.matchMedia('(max-width: 768px)');
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+      let manifest: Manifest;
+      let hotspots: Hotspots | null = null;
+      let variant = '';
+      let images: (HTMLImageElement | null)[] = [];
+      let loadedCount = 0;
+      let loadToken = 0; // bumps when the variant changes, cancelling the old queue
+
+      let progress = 0; // 0–1 scroll progress
+      let current = 0; // eased frame position (float index)
+      let drawn = -1; // index of the frame last painted
+      let dirty = true; // force a repaint (resize, new image arrived)
+      let cover = { x: 0, y: 0, w: 0, h: 0 }; // image rect in CSS px, shared by canvas + hotspots
+      const dots = new Map<string, HTMLElement>();
+
+      // ---------- loading ----------
+
+      function loadOrder(n: number): number[] {
+        const step = Math.max(1, Math.ceil(n / SPARSE_COUNT));
+        const sparse: number[] = [];
+        for (let i = 0; i < n; i += step) sparse.push(i);
+        if (!sparse.includes(n - 1)) sparse.push(n - 1);
+        const rest: number[] = [];
+        for (let i = 0; i < n; i++) if (!sparse.includes(i)) rest.push(i);
+        return [...sparse, ...rest];
+      }
+
+      function loadVariant(next: string) {
+        variant = next;
+        const token = ++loadToken;
+        const n = manifest.frames.length;
+        // Keep any frames from the previous variant on screen until replaced.
+        if (images.length !== n) images = new Array(n).fill(null);
+        loadedCount = 0;
+        const queue = loadOrder(n);
+
+        const worker = async () => {
+          while (queue.length && token === loadToken) {
+            const i = queue.shift()!;
+            const img = new Image();
+            img.decoding = 'async';
+            img.src = `${ROOT}/frames/${next}/${manifest.frames[i]}.webp`;
+            const ok = await new Promise<boolean>((resolve) => {
+              img.onload = () => resolve(true);
+              img.onerror = () => resolve(false);
+            });
+            if (token !== loadToken) return;
+            if (!ok) continue; // missing/broken frame: nearest loaded one is drawn instead
+            await img.decode().catch(() => {}); // pre-decode so the first draw doesn't hitch
+            images[i] = img;
+            loadedCount++;
+            dirty = true;
+          }
+        };
+        for (let i = 0; i < CONCURRENCY; i++) worker();
+      }
+
+      // Nearest frame that has actually finished loading.
+      function nearestLoaded(i: number): number {
+        if (images[i]) return i;
+        for (let d = 1; d < images.length; d++) {
+          if (images[i - d]) return i - d;
+          if (images[i + d]) return i + d;
+        }
+        return -1;
+      }
+
+      // ---------- layout ----------
+
+      function resize() {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = Math.round(stage.clientWidth * dpr);
+        canvas.height = Math.round(stage.clientHeight * dpr);
+        dirty = true;
+      }
+
+      // Cover-fit: scale the image to fill the stage, centred, cropping overflow.
+      function computeCover(iw: number, ih: number) {
+        const cw = stage.clientWidth;
+        const ch = stage.clientHeight;
+        const scale = Math.max(cw / iw, ch / ih);
+        const w = iw * scale;
+        const h = ih * scale;
+        cover = { x: (cw - w) / 2, y: (ch - h) / 2, w, h };
+      }
+
+      function readProgress() {
+        const max = scroller.offsetHeight - window.innerHeight;
+        progress = max > 0 ? Math.min(1, Math.max(0, (window.scrollY - scroller.offsetTop) / max)) : 0;
+      }
+
+      // ---------- drawing ----------
+
+      function draw(index: number) {
+        const shown = nearestLoaded(index);
+        if (shown < 0) return false;
+        const img = images[shown]!;
+        computeCover(img.naturalWidth, img.naturalHeight);
+        const k = canvas.width / stage.clientWidth;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, cover.x * k, cover.y * k, cover.w * k, cover.h * k);
+        return true;
+      }
+
+      function updateHotspots(index: number) {
+        if (!hotspots) return;
+        // Blender keys frames without zero padding ("7"), files are padded ("0007").
+        const frame = hotspots.frames[String(Number(manifest.frames[index]))] ?? {};
+        for (const [name, el] of dots) {
+          const spot = frame[name];
+          const show = !!spot && spot.visible && !spot.occluded;
+          el.classList.toggle('is-visible', show);
+          if (spot) {
+            const x = cover.x + spot.x * cover.w;
+            const y = cover.y + spot.y * cover.h;
+            el.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
+          }
+        }
+      }
+
+      function updateRail() {
+        orb.style.transform = `translateY(${(progress * rail.clientHeight).toFixed(1)}px)`;
+      }
+
+      function updateHud(index: number) {
+        const n = manifest.frames.length;
+        const size = manifest.variants[variant];
+        hud.innerHTML =
+          `<b>frame </b>${manifest.frames[index]} <b>(${index + 1}/${n})</b>\n` +
+          `<b>scroll </b>${(progress * 100).toFixed(1)}%\n` +
+          `<b>loaded </b>${loadedCount}/${n} <b>${variant} ${size?.width ?? '?'}w</b>\n` +
+          `<b>hotspots </b>${hotspots ? dots.size : 'none'}`;
+      }
+
+      function tick() {
+        const n = manifest.frames.length;
+        const target = progress * (n - 1);
+        if (reducedMotion.matches || Math.abs(target - current) < 0.01) current = target;
+        else current += (target - current) * SMOOTHING;
+
+        const index = Math.min(n - 1, Math.max(0, Math.round(current)));
+        if (index !== drawn || dirty) {
+          // Until a frame has painted there is no cover rect to pin hotspots to.
+          if (draw(index)) {
+            updateHotspots(index);
+            drawn = index;
+            dirty = false;
+          }
+        }
+        updateRail();
+        updateHud(index);
+        requestAnimationFrame(tick);
+      }
+
+      // ---------- rail dragging ----------
+
+      function scrubTo(clientY: number) {
+        const rect = rail.getBoundingClientRect();
+        const p = Math.min(1, Math.max(0, (clientY - rect.top) / rect.height));
+        const max = scroller.offsetHeight - window.innerHeight;
+        window.scrollTo({ top: scroller.offsetTop + p * max, behavior: 'instant' });
+      }
+      rail.addEventListener('pointerdown', (e) => {
+        rail.setPointerCapture(e.pointerId);
+        scrubTo(e.clientY);
+      });
+      rail.addEventListener('pointermove', (e) => {
+        if (rail.hasPointerCapture(e.pointerId)) scrubTo(e.clientY);
+      });
+
+      // ---------- boot ----------
+
+      async function init() {
+        const res = await fetch(`${ROOT}/frames/manifest.json`);
+        if (!res.ok) {
+          hud.textContent = 'No frames found.\nRun: node scripts/convert-frames.mjs';
+          return;
+        }
+        manifest = await res.json();
+
+        // Optional — the page runs fine without hotspots.
+        hotspots = await fetch(`${ROOT}/hotspots.json`)
+          .then((r) => (r.ok ? r.json() : null))
+          .catch(() => null);
+        if (hotspots) {
+          const names = new Set<string>();
+          for (const frame of Object.values(hotspots.frames)) Object.keys(frame).forEach((k) => names.add(k));
+          for (const name of names) {
+            const el = document.createElement('div');
+            el.className = 'hotspot';
+            const dot = document.createElement('span');
+            dot.className = 'hotspot__dot';
+            const label = document.createElement('span');
+            label.className = 'hotspot__label';
+            label.textContent = name;
+            el.append(dot, label);
+            hotspotLayer.append(el);
+            dots.set(name, el);
+          }
+        }
+
+        const pick = () => (mobileQuery.matches ? 'mobile' : 'desktop');
+        mobileQuery.addEventListener('change', () => loadVariant(pick()));
+        window.addEventListener('scroll', readProgress, { passive: true });
+        window.addEventListener('resize', () => {
+          resize();
+          readProgress();
+        });
+
+        resize();
+        readProgress();
+        current = progress * (manifest.frames.length - 1);
+        loadVariant(pick());
+        requestAnimationFrame(tick);
+      }
+
+      init();
+    </script>
+  </body>
+</html>
