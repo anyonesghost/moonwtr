@@ -39,11 +39,6 @@
       <div class="rail__stops" id="railStops"></div>
     </div>
 
-    <div class="card" id="card" hidden role="dialog" aria-modal="true" aria-label="Lore card">
-      <button class="card__close" id="cardClose" type="button" aria-label="Close">&times;</button>
-      <img class="card__img" id="cardImg" alt="" />
-    </div>
-
     <pre class="hud" id="hud">loading…</pre>
 
     <style is:global>
@@ -310,58 +305,48 @@
         opacity: 1;
       }
 
-      /* ---- lore card ---- */
-      .card {
-        position: fixed;
-        inset: 0;
-        z-index: 20;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 48px 24px;
-        background: rgba(26, 26, 26, 0.86);
-        animation: card-in 250ms var(--ease);
-      }
-      .card[hidden] {
-        display: none;
-      }
-      .card__img {
-        display: block;
-        max-width: min(100%, 1200px);
-        max-height: 100%;
-        height: auto;
-        box-shadow: 0 0 0 1px var(--accent-dim), 0 0 40px rgba(239, 239, 12, 0.12);
-      }
-      .card__close {
+      /* ---- lore cards, pinned in the scene next to their dot ---- */
+      .lore {
         position: absolute;
-        top: 16px;
-        right: 16px;
-        width: 40px;
-        height: 40px;
-        padding: 0;
-        border: 2px solid var(--accent);
-        border-radius: 50%;
-        background: transparent;
-        color: var(--accent);
-        font: inherit;
-        font-size: 20px;
-        line-height: 1;
+        left: 0;
+        top: 0;
+        pointer-events: none;
+        will-change: transform;
+      }
+      .lore__line {
+        position: absolute;
+        height: 1px;
+        transform-origin: 0 50%;
+        background: linear-gradient(90deg, var(--accent), rgba(239, 239, 12, 0.15));
+        box-shadow: 0 0 6px var(--accent-glow);
+        opacity: 0;
+        transition: opacity 300ms var(--ease);
+      }
+      .lore__pose {
+        /* per-frame perspective tilt is set inline; no transition here */
+        transform-style: flat;
+      }
+      .lore__pop {
+        opacity: 0;
+        transform: scale(0.55) rotateY(var(--pop-spin, 40deg));
+        transition: opacity 250ms var(--ease), transform 450ms cubic-bezier(0.2, 0.9, 0.25, 1.1);
+      }
+      .lore__img {
+        display: block;
+        width: 100%;
+        height: auto;
+        box-shadow: 0 0 0 1px var(--accent-dim), 0 0 30px rgba(239, 239, 12, 0.18), 0 12px 40px rgba(0, 0, 0, 0.55);
+      }
+      .lore.is-open .lore__line {
+        opacity: 1;
+      }
+      .lore.is-open .lore__pop {
+        opacity: 1;
+        transform: scale(1) rotateY(0deg);
+      }
+      .lore.is-open .lore__pose {
+        pointer-events: auto;
         cursor: pointer;
-        transition: background-color 200ms var(--ease), color 200ms var(--ease);
-      }
-      .card__close:hover,
-      .card__close:focus-visible {
-        background: var(--accent);
-        color: var(--bg);
-        outline: none;
-      }
-      @keyframes card-in {
-        from {
-          opacity: 0;
-        }
-        to {
-          opacity: 1;
-        }
       }
 
       /* ---- debug HUD ---- */
@@ -392,16 +377,16 @@
         .hotspot__label {
           display: none;
         }
-        .card {
-          padding: 56px 12px;
-        }
       }
 
       @media (prefers-reduced-motion: reduce) {
         .grain,
-        .hotspot__dot::after,
-        .card {
+        .hotspot__dot::after {
           animation: none;
+        }
+        .lore__pop,
+        .lore__line {
+          transition: none;
         }
         .hotspot,
         .hotspot__dot,
@@ -417,17 +402,22 @@
         frames: string[]; // zero-padded Blender frame ids, playback order
         variants: Record<string, { width: number; height: number }>;
       };
-      type Spot = { x: number; y: number; visible: boolean; occluded?: boolean | null };
+      type Spot = { x: number; y: number; depth?: number; visible: boolean; occluded?: boolean | null };
       type HotspotFile = { frames: Record<string, Record<string, Spot>> };
       type Hotspot = {
         name: string;
         card: string;
         frame: number; // Blender frame where the rail circle sits / counts as "passed"
         index: number; // resolved position in manifest.frames
-        track: { x: number; y: number; visible: boolean }[]; // per manifest frame
+        track: { x: number; y: number; depth: number; visible: boolean }[]; // per manifest frame
         dot: HTMLButtonElement;
         stop: HTMLButtonElement;
+        lore: HTMLElement;
+        pose: HTMLElement;
+        pop: HTMLElement;
+        line: HTMLElement;
         passed: boolean;
+        open: boolean;
       };
 
       // -------- config --------
@@ -464,9 +454,6 @@
       const railFill = $('railFill');
       const railStops = $('railStops');
       const hud = $('hud');
-      const card = $('card');
-      const cardImg = $('cardImg') as HTMLImageElement;
-      const cardClose = $('cardClose') as HTMLButtonElement;
 
       // -------- state --------
 
@@ -489,7 +476,6 @@
       let lastIndex = 0;
       let drawn = -1;
       let dirty = true;
-      let cardOpen = false;
       let cover = { x: 0, y: 0, w: 0, h: 0 }; // image rect in CSS px — shared by canvas + hotspots
 
       // -------- loading --------
@@ -639,7 +625,7 @@
           if (entry[name]) keyed.push({ f: Number(f), s: entry[name] });
         }
         keyed.sort((a, b) => a.f - b.f);
-        if (!keyed.length) return manifest.frames.map(() => ({ x: 0, y: 0, visible: false }));
+        if (!keyed.length) return manifest.frames.map(() => ({ x: 0, y: 0, depth: 1, visible: false }));
 
         const flag = (s: Spot) => s.visible && !(HIDE_OCCLUDED && s.occluded);
         return manifest.frames.map((id) => {
@@ -648,16 +634,17 @@
           // Past the last exported frame: hold the last position rather than extrapolate off the art.
           if (hi === -1) {
             const last = keyed[keyed.length - 1];
-            return { x: last.s.x, y: last.s.y, visible: flag(last.s) };
+            return { x: last.s.x, y: last.s.y, depth: last.s.depth ?? 1, visible: flag(last.s) };
           }
           const b = keyed[hi];
           const a = keyed[Math.max(0, hi - 1)];
-          if (a === b || b.f === f) return { x: b.s.x, y: b.s.y, visible: flag(b.s) };
-          if (f < a.f) return { x: a.s.x, y: a.s.y, visible: flag(a.s) };
+          if (a === b || b.f === f) return { x: b.s.x, y: b.s.y, depth: b.s.depth ?? 1, visible: flag(b.s) };
+          if (f < a.f) return { x: a.s.x, y: a.s.y, depth: a.s.depth ?? 1, visible: flag(a.s) };
           const t = (f - a.f) / (b.f - a.f);
           return {
             x: a.s.x + (b.s.x - a.s.x) * t,
             y: a.s.y + (b.s.y - a.s.y) * t,
+            depth: (a.s.depth ?? 1) + ((b.s.depth ?? 1) - (a.s.depth ?? 1)) * t,
             // Off-screen / behind-camera coordinates are junk, so only show when both ends are valid.
             visible: flag(a.s) && flag(b.s),
           };
@@ -684,8 +671,18 @@
           dot.setAttribute('aria-label', `${cfg.name} — open lore card`);
           dot.innerHTML = `<span class="hotspot__dot"></span><span class="hotspot__label"></span>`;
           dot.querySelector('.hotspot__label')!.textContent = cfg.name;
-          dot.addEventListener('click', () => openCard(cfg.name, cfg.card, dot));
+          dot.setAttribute('aria-expanded', 'false');
           hotspotLayer.append(dot);
+
+          // The card: .lore is positioned per frame; .pose carries the perspective tilt; .pop animates open/close.
+          const lore = document.createElement('div');
+          lore.className = 'lore';
+          lore.innerHTML =
+            `<div class="lore__line"></div><div class="lore__pose"><div class="lore__pop"><img class="lore__img" alt="" draggable="false"></div></div>`;
+          const img = lore.querySelector('img')!;
+          img.alt = cfg.name;
+          img.src = `${ROOT}/cards/${cfg.card}.webp`;
+          hotspotLayer.append(lore);
 
           const stop = document.createElement('button');
           stop.type = 'button';
@@ -698,37 +695,80 @@
           stop.addEventListener('click', () => scrollToProgress(index / (n - 1), true));
           railStops.append(stop);
 
-          hotspots.push({ ...cfg, index, track: buildTrack(cfg.name), dot, stop, passed: false });
+          const h: Hotspot = {
+            ...cfg,
+            index,
+            track: buildTrack(cfg.name),
+            dot,
+            stop,
+            lore,
+            pose: lore.querySelector('.lore__pose') as HTMLElement,
+            pop: lore.querySelector('.lore__pop') as HTMLElement,
+            line: lore.querySelector('.lore__line') as HTMLElement,
+            passed: false,
+            open: false,
+          };
+          dot.addEventListener('click', () => setOpen(h, !h.open));
+          lore.querySelector('.lore__pose')!.addEventListener('click', () => setOpen(h, false));
+          hotspots.push(h);
         }
       }
 
-      // -------- lore card --------
+      // -------- lore cards --------
 
-      let cardOpener: HTMLElement | null = null;
-
-      function openCard(name: string, slug: string, opener: HTMLElement) {
-        cardImg.src = `${ROOT}/cards/${slug}.webp`;
-        cardImg.alt = name;
-        card.hidden = false;
-        cardOpen = true;
-        cardOpener = opener;
-        document.documentElement.style.overflow = 'hidden'; // freeze scrolling behind the card
-        cardClose.focus();
+      function setOpen(h: Hotspot, open: boolean) {
+        if (open) for (const other of hotspots) if (other !== h) setOpen(other, false); // one at a time
+        if (h.open === open) return;
+        h.open = open;
+        h.lore.classList.toggle('is-open', open);
+        h.dot.setAttribute('aria-expanded', String(open));
       }
-      function closeCard() {
-        if (!cardOpen) return;
-        card.hidden = true;
-        cardOpen = false;
-        document.documentElement.style.overflow = '';
-        cardOpener?.focus({ preventScroll: true });
-      }
-      cardClose.addEventListener('click', closeCard);
-      card.addEventListener('click', (e) => {
-        if (e.target === card) closeCard();
-      });
       window.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') closeCard();
+        if (e.key === 'Escape') hotspots.forEach((h) => setOpen(h, false));
       });
+      // Click anywhere that isn't a dot or a card to dismiss.
+      document.addEventListener('click', (e) => {
+        if (!(e.target as Element).closest('.hotspot, .lore__pose, .rail')) hotspots.forEach((h) => setOpen(h, false));
+      });
+
+      const CARD_ASPECT = 962 / 1920;
+      const CARD_MAX_TILT = 26; // degrees of perspective tilt at the stage edge
+
+      // Where the card sits and how it's posed, from the dot's screen position and depth.
+      // This is the single place to swap in projected plane corners (matrix3d) later.
+      function layoutCard(h: Hotspot, px: number, py: number, depth: number) {
+        const sw = stage.clientWidth;
+        const sh = stage.clientHeight;
+        const railRoom = 48; // keep clear of the progress line
+        const narrow = sw < 768;
+        const base = Math.min(Math.max(sw * 0.4, 300), 640);
+        const nearness = Math.min(1.35, Math.max(0.7, 7 / Math.max(depth, 0.5))); // closer to camera = bigger
+        // Phones: use the full readable width instead of depth scaling.
+        const w = narrow ? sw - railRoom - 16 : Math.min(base * nearness, sw - railRoom - 16);
+        const ht = w * CARD_ASPECT;
+        const gap = 30;
+
+        let x: number;
+        let y: number;
+        if (px + gap + w <= sw - railRoom) {
+          x = px + gap;
+          y = py - ht / 2;
+        } else if (px - gap - w >= 8) {
+          x = px - gap - w;
+          y = py - ht / 2;
+        } else {
+          x = Math.min(Math.max(px - w / 2, 8), sw - railRoom - w);
+          y = py - gap - ht >= 8 ? py - gap - ht : py + gap;
+        }
+        y = Math.min(Math.max(y, 8), sh - ht - 8);
+
+        // Tilt toward the middle of the frame so it reads as a panel standing in the scene.
+        const cx = x + w / 2;
+        const cy = y + ht / 2;
+        const ry = reduceMotion.matches ? 0 : ((cx - sw / 2) / (sw / 2)) * CARD_MAX_TILT;
+        const rx = reduceMotion.matches ? 0 : -((cy - sh / 2) / (sh / 2)) * (CARD_MAX_TILT * 0.5);
+        return { x, y, w, ht, ry, rx };
+      }
 
       // -------- per-frame update --------
 
@@ -751,6 +791,27 @@
           h.dot.classList.toggle('is-visible', show);
           h.dot.tabIndex = show ? 0 : -1;
           h.dot.style.transform = `translate(${px.toFixed(1)}px, ${py.toFixed(1)}px)`;
+
+          if (!show && h.open) setOpen(h, false); // the dot left the frame, so does its card
+
+          if (h.open || h.lore.classList.contains('is-open')) {
+            const c = layoutCard(h, px, py, t.depth);
+            h.lore.style.width = `${c.w.toFixed(1)}px`;
+            h.lore.style.transform = `translate3d(${c.x.toFixed(1)}px, ${c.y.toFixed(1)}px, 0)`;
+            h.pose.style.transform = `perspective(900px) rotateY(${c.ry.toFixed(2)}deg) rotateX(${c.rx.toFixed(2)}deg)`;
+            h.pop.style.transformOrigin = `${(px - c.x).toFixed(1)}px ${(py - c.y).toFixed(1)}px`;
+            h.pop.style.setProperty('--pop-spin', `${c.ry >= 0 ? 40 : -40}deg`);
+
+            // Connector from the dot to the nearest point on the card.
+            const ex = Math.min(Math.max(px, c.x), c.x + c.w);
+            const ey = Math.min(Math.max(py, c.y), c.y + c.ht);
+            const dx = ex - px;
+            const dy = ey - py;
+            h.line.style.left = `${(px - c.x).toFixed(1)}px`;
+            h.line.style.top = `${(py - c.y).toFixed(1)}px`;
+            h.line.style.width = `${Math.hypot(dx, dy).toFixed(1)}px`;
+            h.line.style.transform = `rotate(${Math.atan2(dy, dx).toFixed(4)}rad)`;
+          }
 
           const passed = index >= h.index;
           if (passed !== h.passed) {
@@ -830,7 +891,6 @@
           .catch(() => null);
 
         buildHotspots();
-        for (const h of hotspots) new Image().src = `${ROOT}/cards/${h.card}.webp`; // tiny; warm the cache
 
         const pick = () => (mobileQuery.matches ? 'mobile' : 'desktop');
         variant = pick();
