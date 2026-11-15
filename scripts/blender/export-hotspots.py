@@ -17,6 +17,7 @@
 #   x, y      0-1 fractions of the render frame, top-left origin
 #   visible   inside the frame AND in front of the camera
 #   occluded  something is between the camera and the empty (null if not checked)
+#             (only computed when CHECK_OCCLUSION is on)
 #   depth     distance in front of the camera, in scene units
 
 import json
@@ -36,14 +37,18 @@ from bpy_extras.object_utils import world_to_camera_view
 FRAMES_DIR = ""
 
 # Raycast from the camera to flag empties hidden behind geometry.
-CHECK_OCCLUSION = True
+# Off by default: lore markers usually sit inside or behind the object they mark
+# (glass dome, foliage), so the ray reports "occluded" on nearly every frame.
+# The page ignores the flag unless HIDE_OCCLUDED is switched on there.
+CHECK_OCCLUSION = False
 
 # Ray stops this far short of the empty (scene units), so an empty sitting
 # right on a surface isn't flagged as hidden by that surface.
 OCCLUSION_MARGIN = 0.05
 
-# Only export empties whose name starts with this ("" = all empties).
-NAME_PREFIX = ""
+# Only export these empties. An empty list exports every empty in the scene
+# (which includes all the scattered vegetation instance empties - huge output).
+INCLUDE_NAMES = ["Scene Info", "Researchers", "Orb Lore", "Geometry Lore"]
 
 OUTPUT_NAME = "hotspots.json"
 
@@ -95,10 +100,15 @@ def main():
     scene = bpy.context.scene
     empties = [
         ob for ob in scene.objects
-        if ob.type == "EMPTY" and ob.name.startswith(NAME_PREFIX)
+        if ob.type == "EMPTY" and (not INCLUDE_NAMES or ob.name in INCLUDE_NAMES)
     ]
     if not empties:
-        raise RuntimeError("No empties found in scene '%s'." % scene.name)
+        raise RuntimeError(
+            "No matching empties in scene '%s' (INCLUDE_NAMES=%s)." % (scene.name, INCLUDE_NAMES)
+        )
+    missing = [n for n in INCLUDE_NAMES if n not in {ob.name for ob in empties}]
+    if missing:
+        print("hotspots: WARNING - not found in scene:", missing)
 
     frames = frame_list(scene)
     original_frame = scene.frame_current

@@ -1,15 +1,17 @@
 ---
 // Throwaway prototype: scroll-scrubbed render sequence.
 // Standalone on purpose — no BaseLayout, no global styles, no nav.
-// Frames come from `node scripts/convert-frames.mjs`; hotspots.json from
-// scripts/blender/export-hotspots.py (optional — page works without it).
+//
+// Inputs (all under public/lab/scroll-test/):
+//   frames/{desktop,mobile}/<frame>.webp + frames/manifest.json  <- node scripts/convert-frames.mjs
+//   cards/<slug>.webp                                            <- same script (src/pages/lab/hotspots/*.png)
+//   hotspots.json                                                <- scripts/blender/export-hotspots.py
 ---
 
 <!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="robots" content="noindex, nofollow" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex, nofollow" />
     <title>Lab — scroll test</title>
@@ -25,14 +27,21 @@
     <main class="scroller" id="scroller">
       <div class="stage" id="stage">
         <canvas id="canvas" aria-label="Scroll-driven render sequence"></canvas>
-        <div class="hotspots" id="hotspots" aria-hidden="true"></div>
+        <div class="hotspots" id="hotspots"></div>
         <div class="grain" aria-hidden="true"></div>
       </div>
     </main>
 
-    <div class="rail" id="rail" aria-hidden="true">
-      <div class="rail__track"></div>
-      <div class="rail__orb" id="orb"></div>
+    <!-- Right-hand progress line: dim track, bright fill up to the current frame, one circle per hotspot. -->
+    <div class="rail" id="rail">
+      <div class="rail__track" aria-hidden="true"></div>
+      <div class="rail__fill" id="railFill" aria-hidden="true"></div>
+      <div class="rail__stops" id="railStops"></div>
+    </div>
+
+    <div class="card" id="card" hidden role="dialog" aria-modal="true" aria-label="Lore card">
+      <button class="card__close" id="cardClose" type="button" aria-label="Close">&times;</button>
+      <img class="card__img" id="cardImg" alt="" />
     </div>
 
     <pre class="hud" id="hud">loading…</pre>
@@ -43,7 +52,9 @@
         --bg: #1a1a1a;
         --text: #f5f2ed;
         --mid: #888888;
-        --gold: #d9b25f;
+        --accent: #efef0c;
+        --accent-dim: rgba(239, 239, 12, 0.22);
+        --accent-glow: rgba(239, 239, 12, 0.65);
         --ease: cubic-bezier(0.4, 0, 0.2, 1);
       }
 
@@ -70,9 +81,9 @@
         letter-spacing: 0.03em;
       }
 
-      /* Scroll length — the page's only "duration" knob. */
+      /* Scroll length (~3.5vh per frame for 401 frames). Tune to taste. */
       .scroller {
-        height: 600vh;
+        height: 1400vh;
       }
 
       .stage {
@@ -92,7 +103,7 @@
         display: block;
       }
 
-      /* ---- hotspots ---- */
+      /* ---- hotspot dots on the art ---- */
       .hotspots {
         position: absolute;
         inset: 0;
@@ -104,35 +115,66 @@
         top: 0;
         width: 0;
         height: 0;
+        padding: 0;
+        border: 0;
+        background: none;
+        color: var(--text);
+        font: inherit;
+        letter-spacing: inherit;
         opacity: 0;
+        pointer-events: none;
+        cursor: pointer;
         transition: opacity 200ms var(--ease);
         will-change: transform;
       }
       .hotspot.is-visible {
         opacity: 1;
+        pointer-events: auto;
+      }
+      /* generous hit area around the 16px dot */
+      .hotspot::before {
+        content: '';
+        position: absolute;
+        left: -24px;
+        top: -24px;
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
       }
       .hotspot__dot {
         position: absolute;
-        left: -5px;
-        top: -5px;
-        width: 10px;
-        height: 10px;
+        left: -8px;
+        top: -8px;
+        width: 16px;
+        height: 16px;
         border-radius: 50%;
-        background: var(--text);
-        box-shadow: 0 0 0 1px rgba(26, 26, 26, 0.5), 0 0 12px 2px rgba(245, 242, 237, 0.6);
+        border: 2px solid var(--accent);
+        background: transparent;
+        box-shadow: 0 0 8px 1px var(--accent-glow);
+        transition: background-color 300ms var(--ease), transform 200ms var(--ease);
+      }
+      .hotspot.is-passed .hotspot__dot {
+        background: var(--accent);
+      }
+      .hotspot:hover .hotspot__dot,
+      .hotspot:focus-visible .hotspot__dot {
+        transform: scale(1.25);
+      }
+      .hotspot:focus-visible {
+        outline: none;
       }
       .hotspot__dot::after {
         content: '';
         position: absolute;
-        inset: -7px;
-        border: 1px solid var(--text);
+        inset: -8px;
+        border: 1px solid var(--accent);
         border-radius: 50%;
         opacity: 0.5;
         animation: hotspot-pulse 2.4s var(--ease) infinite;
       }
       .hotspot__label {
         position: absolute;
-        left: 16px;
+        left: 20px;
         top: -8px;
         white-space: nowrap;
         text-transform: uppercase;
@@ -188,7 +230,7 @@
         }
       }
 
-      /* ---- custom scrollbar ---- */
+      /* ---- progress rail ---- */
       .rail {
         position: fixed;
         top: 24px;
@@ -199,26 +241,127 @@
         cursor: pointer;
         touch-action: none;
       }
-      .rail__track {
+      .rail__track,
+      .rail__fill {
         position: absolute;
         top: 0;
         bottom: 0;
         left: 50%;
-        width: 1px;
-        background: rgba(245, 242, 237, 0.55);
-        box-shadow: 0 0 6px 1px rgba(245, 242, 237, 0.35), 0 0 18px 2px rgba(217, 178, 95, 0.25);
+        width: 2px;
+        margin-left: -1px;
       }
-      .rail__orb {
-        position: absolute;
-        top: 0;
-        left: 50%;
-        width: 14px;
-        height: 14px;
-        margin: -7px 0 0 -7px;
-        border-radius: 50%;
-        background: radial-gradient(circle at 35% 30%, #fff3cf 0%, var(--gold) 45%, #8a6a24 100%);
-        box-shadow: 0 0 10px 2px rgba(217, 178, 95, 0.8), 0 0 28px 8px rgba(217, 178, 95, 0.3);
+      .rail__track {
+        background: var(--accent-dim);
+      }
+      .rail__fill {
+        background: var(--accent);
+        box-shadow: 0 0 8px 1px var(--accent-glow), 0 0 22px 2px rgba(239, 239, 12, 0.3);
+        transform-origin: top;
+        transform: scaleY(0);
         will-change: transform;
+      }
+      .rail__stops {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+      }
+      /* hollow circle (the line is masked behind it) that fills once passed */
+      .rail__stop {
+        position: absolute;
+        left: 50%;
+        width: 16px;
+        height: 16px;
+        margin: -8px 0 0 -8px;
+        padding: 0;
+        border: 2px solid var(--accent);
+        border-radius: 50%;
+        background: var(--bg);
+        color: var(--accent);
+        font: inherit;
+        cursor: pointer;
+        pointer-events: auto;
+        transition: background-color 300ms var(--ease), box-shadow 300ms var(--ease), transform 200ms var(--ease);
+      }
+      .rail__stop.is-passed {
+        background: var(--accent);
+        box-shadow: 0 0 10px 2px var(--accent-glow);
+      }
+      .rail__stop:hover,
+      .rail__stop:focus-visible {
+        transform: scale(1.25);
+        outline: none;
+      }
+      .rail__label {
+        position: absolute;
+        right: 26px;
+        top: 50%;
+        transform: translateY(-50%);
+        white-space: nowrap;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        color: var(--text);
+        text-shadow: 0 0 6px var(--bg), 0 0 2px var(--bg);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 200ms var(--ease);
+      }
+      .rail__stop:hover .rail__label,
+      .rail__stop:focus-visible .rail__label {
+        opacity: 1;
+      }
+
+      /* ---- lore card ---- */
+      .card {
+        position: fixed;
+        inset: 0;
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 48px 24px;
+        background: rgba(26, 26, 26, 0.86);
+        animation: card-in 250ms var(--ease);
+      }
+      .card[hidden] {
+        display: none;
+      }
+      .card__img {
+        display: block;
+        max-width: min(100%, 1200px);
+        max-height: 100%;
+        height: auto;
+        box-shadow: 0 0 0 1px var(--accent-dim), 0 0 40px rgba(239, 239, 12, 0.12);
+      }
+      .card__close {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        width: 40px;
+        height: 40px;
+        padding: 0;
+        border: 2px solid var(--accent);
+        border-radius: 50%;
+        background: transparent;
+        color: var(--accent);
+        font: inherit;
+        font-size: 20px;
+        line-height: 1;
+        cursor: pointer;
+        transition: background-color 200ms var(--ease), color 200ms var(--ease);
+      }
+      .card__close:hover,
+      .card__close:focus-visible {
+        background: var(--accent);
+        color: var(--bg);
+        outline: none;
+      }
+      @keyframes card-in {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
       }
 
       /* ---- debug HUD ---- */
@@ -243,19 +386,27 @@
       @media (max-width: 768px) {
         .rail {
           right: 0;
-          width: 24px;
+          width: 28px;
         }
+        .rail__label,
         .hotspot__label {
           display: none;
+        }
+        .card {
+          padding: 56px 12px;
         }
       }
 
       @media (prefers-reduced-motion: reduce) {
         .grain,
-        .hotspot__dot::after {
+        .hotspot__dot::after,
+        .card {
           animation: none;
         }
-        .hotspot {
+        .hotspot,
+        .hotspot__dot,
+        .rail__stop,
+        .rail__label {
           transition: none;
         }
       }
@@ -263,189 +414,397 @@
 
     <script>
       type Manifest = {
-        frames: string[];
+        frames: string[]; // zero-padded Blender frame ids, playback order
         variants: Record<string, { width: number; height: number }>;
       };
-      type Hotspot = { x: number; y: number; visible: boolean; occluded?: boolean | null };
-      type Hotspots = { frames: Record<string, Record<string, Hotspot>> };
+      type Spot = { x: number; y: number; visible: boolean; occluded?: boolean | null };
+      type HotspotFile = { frames: Record<string, Record<string, Spot>> };
+      type Hotspot = {
+        name: string;
+        card: string;
+        frame: number; // Blender frame where the rail circle sits / counts as "passed"
+        index: number; // resolved position in manifest.frames
+        track: { x: number; y: number; visible: boolean }[]; // per manifest frame
+        dot: HTMLButtonElement;
+        stop: HTMLButtonElement;
+        passed: boolean;
+      };
+
+      // -------- config --------
+
+      // Hotspots with lore cards. `name` = Blender empty name, `card` = file in cards/,
+      // `frame` = where it sits on the rail (and when it flips from outline to filled).
+      // Frames = the last frame each empty is in view (from hotspots.json), i.e. the moment the
+      // camera has gone past it. Nudge freely if a different beat feels right.
+      const HOTSPOTS = [
+        { name: 'Researchers', card: 'researchers', frame: 324 },
+        { name: 'Orb Lore', card: 'orb-lore', frame: 355 },
+        { name: 'Geometry Lore', card: 'geometry-lore', frame: 296 },
+      ];
+
+      const HIDE_OCCLUDED = false; // honour the raycast flag from the Blender export
+      const SMOOTHING = 0.18; // 1 = no easing between scroll target and drawn frame
+      const FETCH_CONCURRENCY = 6;
+      const MAX_DECODES = 4;
+      const ANCHOR_STEP = 25; // frames kept decoded permanently as a fallback while scrubbing fast
+      const WINDOW = 18; // frames decoded either side of the current one
 
       const ROOT = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/lab/scroll-test`;
-      const SPARSE_COUNT = 8; // frames in the first (sparse) preload pass
-      const CONCURRENCY = 4;
-      const SMOOTHING = 0.18; // 1 = no easing between scroll target and drawn frame
-
-      const scroller = document.getElementById('scroller')!;
-      const stage = document.getElementById('stage')!;
-      const canvas = document.getElementById('canvas') as HTMLCanvasElement;
-      const ctx = canvas.getContext('2d')!;
-      const hotspotLayer = document.getElementById('hotspots')!;
-      const rail = document.getElementById('rail')!;
-      const orb = document.getElementById('orb')!;
-      const hud = document.getElementById('hud')!;
-
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
       const mobileQuery = window.matchMedia('(max-width: 768px)');
-      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+      const $ = (id: string) => document.getElementById(id)!;
+      const scroller = $('scroller');
+      const stage = $('stage');
+      const canvas = $('canvas') as HTMLCanvasElement;
+      const ctx = canvas.getContext('2d')!;
+      ctx.imageSmoothingQuality = 'high';
+      const hotspotLayer = $('hotspots');
+      const rail = $('rail');
+      const railFill = $('railFill');
+      const railStops = $('railStops');
+      const hud = $('hud');
+      const card = $('card');
+      const cardImg = $('cardImg') as HTMLImageElement;
+      const cardClose = $('cardClose') as HTMLButtonElement;
+
+      // -------- state --------
 
       let manifest: Manifest;
-      let hotspots: Hotspots | null = null;
       let variant = '';
-      let images: (HTMLImageElement | null)[] = [];
-      let loadedCount = 0;
-      let loadToken = 0; // bumps when the variant changes, cancelling the old queue
+      let hotspotFile: HotspotFile | null = null;
+      const hotspots: Hotspot[] = [];
+
+      // Compressed bytes for every frame (cheap) vs decoded bitmaps for a window (expensive).
+      let blobs: (Blob | null)[] = [];
+      let blobCount = 0;
+      const bitmaps = new Map<number, ImageBitmap>();
+      const inflight = new Set<number>();
+      let wanted = new Set<number>();
+      let decoding = 0;
+      let loadToken = 0; // bumps on variant change, cancelling the old queue
 
       let progress = 0; // 0–1 scroll progress
       let current = 0; // eased frame position (float index)
-      let drawn = -1; // index of the frame last painted
-      let dirty = true; // force a repaint (resize, new image arrived)
-      let cover = { x: 0, y: 0, w: 0, h: 0 }; // image rect in CSS px, shared by canvas + hotspots
-      const dots = new Map<string, HTMLElement>();
+      let lastIndex = 0;
+      let drawn = -1;
+      let dirty = true;
+      let cardOpen = false;
+      let cover = { x: 0, y: 0, w: 0, h: 0 }; // image rect in CSS px — shared by canvas + hotspots
 
-      // ---------- loading ----------
+      // -------- loading --------
 
-      function loadOrder(n: number): number[] {
-        const step = Math.max(1, Math.ceil(n / SPARSE_COUNT));
-        const sparse: number[] = [];
-        for (let i = 0; i < n; i += step) sparse.push(i);
-        if (!sparse.includes(n - 1)) sparse.push(n - 1);
-        const rest: number[] = [];
-        for (let i = 0; i < n; i++) if (!sparse.includes(i)) rest.push(i);
-        return [...sparse, ...rest];
+      function anchorList(n: number): number[] {
+        const out: number[] = [];
+        for (let i = 0; i < n; i += ANCHOR_STEP) out.push(i);
+        if (out[out.length - 1] !== n - 1) out.push(n - 1);
+        return out;
       }
 
-      function loadVariant(next: string) {
+      function startLoading(next: string) {
         variant = next;
         const token = ++loadToken;
         const n = manifest.frames.length;
-        // Keep any frames from the previous variant on screen until replaced.
-        if (images.length !== n) images = new Array(n).fill(null);
-        loadedCount = 0;
-        const queue = loadOrder(n);
+
+        for (const bm of bitmaps.values()) bm.close();
+        bitmaps.clear();
+        inflight.clear();
+        decoding = 0;
+        blobs = new Array(n).fill(null);
+        blobCount = 0;
+        dirty = true;
+
+        // Anchors first (so something is always drawable), then outward from where the user is.
+        const anchors = anchorList(n);
+        const rest = [...Array(n).keys()].filter((i) => !anchors.includes(i));
+        rest.sort((a, b) => Math.abs(a - lastIndex) - Math.abs(b - lastIndex));
+        const queue = [...anchors, ...rest];
 
         const worker = async () => {
           while (queue.length && token === loadToken) {
             const i = queue.shift()!;
-            const img = new Image();
-            img.decoding = 'async';
-            img.src = `${ROOT}/frames/${next}/${manifest.frames[i]}.webp`;
-            const ok = await new Promise<boolean>((resolve) => {
-              img.onload = () => resolve(true);
-              img.onerror = () => resolve(false);
-            });
-            if (token !== loadToken) return;
-            if (!ok) continue; // missing/broken frame: nearest loaded one is drawn instead
-            await img.decode().catch(() => {}); // pre-decode so the first draw doesn't hitch
-            images[i] = img;
-            loadedCount++;
-            dirty = true;
+            try {
+              const res = await fetch(`${ROOT}/frames/${next}/${manifest.frames[i]}.webp`);
+              if (!res.ok) continue; // missing frame: nearest decoded one is drawn instead
+              const blob = await res.blob();
+              if (token !== loadToken) return;
+              blobs[i] = blob;
+              blobCount++;
+            } catch {
+              /* network hiccup: skip */
+            }
           }
         };
-        for (let i = 0; i < CONCURRENCY; i++) worker();
+        for (let i = 0; i < FETCH_CONCURRENCY; i++) worker();
       }
 
-      // Nearest frame that has actually finished loading.
-      function nearestLoaded(i: number): number {
-        if (images[i]) return i;
-        for (let d = 1; d < images.length; d++) {
-          if (images[i - d]) return i - d;
-          if (images[i + d]) return i + d;
+      // Keep decoded bitmaps for the current window + anchors; close the rest.
+      function pump(index: number) {
+        const n = manifest.frames.length;
+        const want: number[] = [];
+        const seen = new Set<number>();
+        const add = (i: number) => {
+          if (i >= 0 && i < n && !seen.has(i)) {
+            seen.add(i);
+            want.push(i);
+          }
+        };
+        for (let d = 0; d <= WINDOW; d++) {
+          add(index + d);
+          add(index - d);
+        }
+        anchorList(n).forEach(add);
+        wanted = seen;
+
+        for (const [i, bm] of bitmaps) {
+          if (!seen.has(i)) {
+            bm.close();
+            bitmaps.delete(i);
+          }
+        }
+
+        const token = loadToken;
+        for (const i of want) {
+          if (decoding >= MAX_DECODES) break;
+          if (bitmaps.has(i) || inflight.has(i) || !blobs[i]) continue;
+          inflight.add(i);
+          decoding++;
+          createImageBitmap(blobs[i]!)
+            .then((bm) => {
+              if (token !== loadToken || !wanted.has(i)) return bm.close();
+              bitmaps.set(i, bm);
+              if (Math.abs(i - lastIndex) <= 2) dirty = true;
+            })
+            .catch(() => {})
+            .finally(() => {
+              if (token !== loadToken) return;
+              inflight.delete(i);
+              decoding--;
+            });
+        }
+      }
+
+      function nearestBitmap(i: number): number {
+        if (bitmaps.has(i)) return i;
+        for (let d = 1; d < manifest.frames.length; d++) {
+          if (bitmaps.has(i - d)) return i - d;
+          if (bitmaps.has(i + d)) return i + d;
         }
         return -1;
       }
 
-      // ---------- layout ----------
+      // -------- layout --------
 
       function resize() {
         const dpr = Math.min(window.devicePixelRatio || 1, 2);
         canvas.width = Math.round(stage.clientWidth * dpr);
         canvas.height = Math.round(stage.clientHeight * dpr);
+
+        // Cover-fit: scale the frame to fill the stage, centred, cropping the overflow.
+        // Dots use this same rect, which is what keeps them locked to the art.
+        const size = manifest.variants[variant] ?? Object.values(manifest.variants)[0];
+        const cw = stage.clientWidth;
+        const ch = stage.clientHeight;
+        const scale = Math.max(cw / size.width, ch / size.height);
+        const w = size.width * scale;
+        const h = size.height * scale;
+        cover = { x: (cw - w) / 2, y: (ch - h) / 2, w, h };
         dirty = true;
       }
 
-      // Cover-fit: scale the image to fill the stage, centred, cropping overflow.
-      function computeCover(iw: number, ih: number) {
-        const cw = stage.clientWidth;
-        const ch = stage.clientHeight;
-        const scale = Math.max(cw / iw, ch / ih);
-        const w = iw * scale;
-        const h = ih * scale;
-        cover = { x: (cw - w) / 2, y: (ch - h) / 2, w, h };
+      function scrollMax() {
+        return scroller.offsetHeight - window.innerHeight;
       }
 
       function readProgress() {
-        const max = scroller.offsetHeight - window.innerHeight;
+        const max = scrollMax();
         progress = max > 0 ? Math.min(1, Math.max(0, (window.scrollY - scroller.offsetTop) / max)) : 0;
       }
 
-      // ---------- drawing ----------
+      function scrollToProgress(p: number, smooth = false) {
+        window.scrollTo({
+          top: scroller.offsetTop + p * scrollMax(),
+          behavior: smooth && !reduceMotion.matches ? 'smooth' : 'instant',
+        });
+      }
 
-      function draw(index: number) {
-        const shown = nearestLoaded(index);
+      // -------- hotspot data --------
+
+      // Per-frame screen positions for one empty. The Blender export may only cover
+      // some frames (e.g. every 7th), so anything missing is interpolated between
+      // the nearest exported frames. Exact exports pass straight through.
+      function buildTrack(name: string): Hotspot['track'] {
+        const keyed: { f: number; s: Spot }[] = [];
+        for (const [f, entry] of Object.entries(hotspotFile?.frames ?? {})) {
+          if (entry[name]) keyed.push({ f: Number(f), s: entry[name] });
+        }
+        keyed.sort((a, b) => a.f - b.f);
+        if (!keyed.length) return manifest.frames.map(() => ({ x: 0, y: 0, visible: false }));
+
+        const flag = (s: Spot) => s.visible && !(HIDE_OCCLUDED && s.occluded);
+        return manifest.frames.map((id) => {
+          const f = Number(id);
+          let hi = keyed.findIndex((k) => k.f >= f);
+          // Past the last exported frame: hold the last position rather than extrapolate off the art.
+          if (hi === -1) {
+            const last = keyed[keyed.length - 1];
+            return { x: last.s.x, y: last.s.y, visible: flag(last.s) };
+          }
+          const b = keyed[hi];
+          const a = keyed[Math.max(0, hi - 1)];
+          if (a === b || b.f === f) return { x: b.s.x, y: b.s.y, visible: flag(b.s) };
+          if (f < a.f) return { x: a.s.x, y: a.s.y, visible: flag(a.s) };
+          const t = (f - a.f) / (b.f - a.f);
+          return {
+            x: a.s.x + (b.s.x - a.s.x) * t,
+            y: a.s.y + (b.s.y - a.s.y) * t,
+            // Off-screen / behind-camera coordinates are junk, so only show when both ends are valid.
+            visible: flag(a.s) && flag(b.s),
+          };
+        });
+      }
+
+      function nearestIndex(frame: number): number {
+        let best = 0;
+        manifest.frames.forEach((id, i) => {
+          if (Math.abs(Number(id) - frame) < Math.abs(Number(manifest.frames[best]) - frame)) best = i;
+        });
+        return best;
+      }
+
+      function buildHotspots() {
+        const n = manifest.frames.length;
+        for (const cfg of HOTSPOTS) {
+          const index = nearestIndex(cfg.frame);
+
+          const dot = document.createElement('button');
+          dot.type = 'button';
+          dot.className = 'hotspot';
+          dot.tabIndex = -1;
+          dot.setAttribute('aria-label', `${cfg.name} — open lore card`);
+          dot.innerHTML = `<span class="hotspot__dot"></span><span class="hotspot__label"></span>`;
+          dot.querySelector('.hotspot__label')!.textContent = cfg.name;
+          dot.addEventListener('click', () => openCard(cfg.name, cfg.card, dot));
+          hotspotLayer.append(dot);
+
+          const stop = document.createElement('button');
+          stop.type = 'button';
+          stop.className = 'rail__stop';
+          stop.style.top = `${(index / (n - 1)) * 100}%`;
+          stop.setAttribute('aria-label', `${cfg.name} — jump to frame ${manifest.frames[index]}`);
+          stop.innerHTML = `<span class="rail__label"></span>`;
+          stop.querySelector('.rail__label')!.textContent = cfg.name;
+          stop.addEventListener('pointerdown', (e) => e.stopPropagation()); // don't start a rail drag
+          stop.addEventListener('click', () => scrollToProgress(index / (n - 1), true));
+          railStops.append(stop);
+
+          hotspots.push({ ...cfg, index, track: buildTrack(cfg.name), dot, stop, passed: false });
+        }
+      }
+
+      // -------- lore card --------
+
+      let cardOpener: HTMLElement | null = null;
+
+      function openCard(name: string, slug: string, opener: HTMLElement) {
+        cardImg.src = `${ROOT}/cards/${slug}.webp`;
+        cardImg.alt = name;
+        card.hidden = false;
+        cardOpen = true;
+        cardOpener = opener;
+        document.documentElement.style.overflow = 'hidden'; // freeze scrolling behind the card
+        cardClose.focus();
+      }
+      function closeCard() {
+        if (!cardOpen) return;
+        card.hidden = true;
+        cardOpen = false;
+        document.documentElement.style.overflow = '';
+        cardOpener?.focus({ preventScroll: true });
+      }
+      cardClose.addEventListener('click', closeCard);
+      card.addEventListener('click', (e) => {
+        if (e.target === card) closeCard();
+      });
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeCard();
+      });
+
+      // -------- per-frame update --------
+
+      function draw(index: number): boolean {
+        const shown = nearestBitmap(index);
         if (shown < 0) return false;
-        const img = images[shown]!;
-        computeCover(img.naturalWidth, img.naturalHeight);
         const k = canvas.width / stage.clientWidth;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, cover.x * k, cover.y * k, cover.w * k, cover.h * k);
+        ctx.drawImage(bitmaps.get(shown)!, cover.x * k, cover.y * k, cover.w * k, cover.h * k);
         return true;
       }
 
       function updateHotspots(index: number) {
-        if (!hotspots) return;
-        // Blender keys frames without zero padding ("7"), files are padded ("0007").
-        const frame = hotspots.frames[String(Number(manifest.frames[index]))] ?? {};
-        for (const [name, el] of dots) {
-          const spot = frame[name];
-          const show = !!spot && spot.visible && !spot.occluded;
-          el.classList.toggle('is-visible', show);
-          if (spot) {
-            const x = cover.x + spot.x * cover.w;
-            const y = cover.y + spot.y * cover.h;
-            el.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
+        for (const h of hotspots) {
+          const t = h.track[index];
+          const px = cover.x + t.x * cover.w;
+          const py = cover.y + t.y * cover.h;
+          // "In frame" in Blender isn't "on screen" once cover-fit crops the sides, so check the stage too.
+          const show = t.visible && px >= 8 && px <= stage.clientWidth - 8 && py >= 8 && py <= stage.clientHeight - 8;
+          h.dot.classList.toggle('is-visible', show);
+          h.dot.tabIndex = show ? 0 : -1;
+          h.dot.style.transform = `translate(${px.toFixed(1)}px, ${py.toFixed(1)}px)`;
+
+          const passed = index >= h.index;
+          if (passed !== h.passed) {
+            h.passed = passed;
+            h.dot.classList.toggle('is-passed', passed);
+            h.stop.classList.toggle('is-passed', passed);
           }
         }
-      }
-
-      function updateRail() {
-        orb.style.transform = `translateY(${(progress * rail.clientHeight).toFixed(1)}px)`;
       }
 
       function updateHud(index: number) {
         const n = manifest.frames.length;
         const size = manifest.variants[variant];
+        const passed = hotspots.filter((h) => h.passed).length;
+        const keys = Object.keys(hotspotFile?.frames ?? {}).map(Number);
+        const lastKey = keys.length ? Math.max(...keys) : -1;
+        const stale = keys.length && lastKey < Number(manifest.frames[n - 1]);
         hud.innerHTML =
           `<b>frame </b>${manifest.frames[index]} <b>(${index + 1}/${n})</b>\n` +
           `<b>scroll </b>${(progress * 100).toFixed(1)}%\n` +
-          `<b>loaded </b>${loadedCount}/${n} <b>${variant} ${size?.width ?? '?'}w</b>\n` +
-          `<b>hotspots </b>${hotspots ? dots.size : 'none'}`;
+          `<b>fetched </b>${blobCount}/${n} <b>decoded </b>${bitmaps.size}\n` +
+          `<b>${variant} ${size?.width ?? '?'}w</b>\n` +
+          `<b>hotspots </b>${hotspotFile ? `${passed}/${hotspots.length} passed` : 'no hotspots.json'}` +
+          (stale ? `\n<b>! hotspots.json ends f${lastKey} — re-export</b>` : '');
       }
 
       function tick() {
         const n = manifest.frames.length;
         const target = progress * (n - 1);
-        if (reducedMotion.matches || Math.abs(target - current) < 0.01) current = target;
+        if (reduceMotion.matches || Math.abs(target - current) < 0.01) current = target;
         else current += (target - current) * SMOOTHING;
 
         const index = Math.min(n - 1, Math.max(0, Math.round(current)));
+        lastIndex = index;
+        pump(index);
+
         if (index !== drawn || dirty) {
-          // Until a frame has painted there is no cover rect to pin hotspots to.
+          // Until a frame has painted there's no picture to pin hotspots to.
           if (draw(index)) {
-            updateHotspots(index);
             drawn = index;
             dirty = false;
           }
         }
-        updateRail();
+        updateHotspots(index);
+        railFill.style.transform = `scaleY(${(current / (n - 1)).toFixed(4)})`;
         updateHud(index);
         requestAnimationFrame(tick);
       }
 
-      // ---------- rail dragging ----------
+      // -------- rail dragging --------
 
       function scrubTo(clientY: number) {
         const rect = rail.getBoundingClientRect();
-        const p = Math.min(1, Math.max(0, (clientY - rect.top) / rect.height));
-        const max = scroller.offsetHeight - window.innerHeight;
-        window.scrollTo({ top: scroller.offsetTop + p * max, behavior: 'instant' });
+        scrollToProgress(Math.min(1, Math.max(0, (clientY - rect.top) / rect.height)));
       }
       rail.addEventListener('pointerdown', (e) => {
         rail.setPointerCapture(e.pointerId);
@@ -455,7 +814,7 @@
         if (rail.hasPointerCapture(e.pointerId)) scrubTo(e.clientY);
       });
 
-      // ---------- boot ----------
+      // -------- boot --------
 
       async function init() {
         const res = await fetch(`${ROOT}/frames/manifest.json`);
@@ -465,39 +824,29 @@
         }
         manifest = await res.json();
 
-        // Optional — the page runs fine without hotspots.
-        hotspots = await fetch(`${ROOT}/hotspots.json`)
+        // Optional — the page still scrubs fine without hotspots.
+        hotspotFile = await fetch(`${ROOT}/hotspots.json`)
           .then((r) => (r.ok ? r.json() : null))
           .catch(() => null);
-        if (hotspots) {
-          const names = new Set<string>();
-          for (const frame of Object.values(hotspots.frames)) Object.keys(frame).forEach((k) => names.add(k));
-          for (const name of names) {
-            const el = document.createElement('div');
-            el.className = 'hotspot';
-            const dot = document.createElement('span');
-            dot.className = 'hotspot__dot';
-            const label = document.createElement('span');
-            label.className = 'hotspot__label';
-            label.textContent = name;
-            el.append(dot, label);
-            hotspotLayer.append(el);
-            dots.set(name, el);
-          }
-        }
+
+        buildHotspots();
+        for (const h of hotspots) new Image().src = `${ROOT}/cards/${h.card}.webp`; // tiny; warm the cache
 
         const pick = () => (mobileQuery.matches ? 'mobile' : 'desktop');
-        mobileQuery.addEventListener('change', () => loadVariant(pick()));
+        variant = pick();
+        resize();
+        readProgress();
+        current = progress * (manifest.frames.length - 1);
+        lastIndex = Math.round(current);
+
+        mobileQuery.addEventListener('change', () => startLoading(pick()));
         window.addEventListener('scroll', readProgress, { passive: true });
         window.addEventListener('resize', () => {
           resize();
           readProgress();
         });
 
-        resize();
-        readProgress();
-        current = progress * (manifest.frames.length - 1);
-        loadVariant(pick());
+        startLoading(variant);
         requestAnimationFrame(tick);
       }
 
