@@ -42,24 +42,6 @@
 
     <pre class="hud" id="hud">loading…</pre>
 
-    <!-- Temporary grain tuner — press G. -->
-    <div class="gdebug" id="gdebug" hidden>
-      <div class="gdebug__title">grain <span>(G to hide)</span></div>
-      <label>opacity <output id="gOpacityOut"></output><input id="gOpacity" type="range" min="0" max="0.4" step="0.005" /></label>
-      <label>size (px) <output id="gSizeOut"></output><input id="gSize" type="range" min="0.5" max="4" step="0.25" /></label>
-      <label>fps <output id="gFpsOut"></output><input id="gFps" type="range" min="4" max="60" step="1" /></label>
-      <label>blend
-        <select id="gBlend">
-          <option>soft-light</option>
-          <option>overlay</option>
-          <option>hard-light</option>
-          <option>normal</option>
-        </select>
-      </label>
-      <pre id="gValues"></pre>
-      <button type="button" id="gCopy">copy values</button>
-    </div>
-
     <style is:global>
       :root {
         /* DESIGN.md poles, inverted for a dark stage */
@@ -213,69 +195,8 @@
         width: 100%;
         height: 100%;
         pointer-events: none;
-        opacity: 0.08;
-        mix-blend-mode: soft-light;
-      }
-
-      /* ---- grain debug panel ---- */
-      .gdebug {
-        position: fixed;
-        top: 16px;
-        left: 16px;
-        z-index: 30;
-        width: 220px;
-        padding: 12px;
-        background: rgba(26, 26, 26, 0.88);
-        border: 1px solid var(--accent-dim);
-        color: var(--text);
-        display: grid;
-        gap: 10px;
-      }
-      .gdebug[hidden] {
-        display: none;
-      }
-      .gdebug__title {
-        text-transform: uppercase;
-        letter-spacing: 0.15em;
-        color: var(--accent);
-      }
-      .gdebug__title span {
-        color: var(--mid);
-        text-transform: none;
-        letter-spacing: 0.03em;
-      }
-      .gdebug label {
-        display: grid;
-        grid-template-columns: 1fr auto;
-        gap: 4px 8px;
-        color: var(--mid);
-      }
-      .gdebug output {
-        color: var(--text);
-      }
-      .gdebug input[type='range'],
-      .gdebug select {
-        grid-column: 1 / -1;
-        width: 100%;
-        accent-color: var(--accent);
-      }
-      .gdebug select,
-      .gdebug button {
-        font: inherit;
-        color: var(--text);
-        background: var(--bg);
-        border: 1px solid var(--accent-dim);
-        padding: 4px 6px;
-      }
-      .gdebug button {
-        cursor: pointer;
-        color: var(--accent);
-      }
-      .gdebug pre {
-        margin: 0;
-        font: inherit;
-        white-space: pre-wrap;
-        color: var(--text);
+        opacity: 0.19;
+        mix-blend-mode: hard-light;
       }
 
       /* ---- progress rail ---- */
@@ -780,7 +701,7 @@
       });
       // Click anywhere that isn't a dot or a card to dismiss.
       document.addEventListener('click', (e) => {
-        if (!(e.target as Element).closest('.hotspot, .lore__pose, .rail, .gdebug')) hotspots.forEach((h) => setOpen(h, false));
+        if (!(e.target as Element).closest('.hotspot, .lore__pose, .rail')) hotspots.forEach((h) => setOpen(h, false));
       });
 
       const CARD_ASPECT = 962 / 1920;
@@ -931,7 +852,7 @@
       // Noise is generated once into a few small tiles. Each "frame" of grain just tiles one of them
       // across a physical-pixel canvas at a random offset, at film cadence rather than every rAF.
 
-      const GRAIN = { opacity: 0.08, size: 1.25, fps: 18, blend: 'soft-light' }; // size = physical px per noise px
+      const GRAIN = { opacity: 0.19, size: 1, fps: 18, blend: 'hard-light' }; // size = physical px per noise px
       const GRAIN_TILE = 256;
       const GRAIN_TILES = 8;
       const grainCanvas = $('grain') as HTMLCanvasElement;
@@ -1033,47 +954,6 @@
         sizeGrain();
         drawGrain(grainIndex, reduceMotion.matches);
       });
-
-      // Temporary tuner (G): sliders write straight into GRAIN so you can dial it in by eye.
-      {
-        const panel = $('gdebug');
-        const inOpacity = $('gOpacity') as HTMLInputElement;
-        const inSize = $('gSize') as HTMLInputElement;
-        const inFps = $('gFps') as HTMLInputElement;
-        const inBlend = $('gBlend') as HTMLSelectElement;
-        const values = $('gValues');
-        const snippet = () =>
-          `const GRAIN = { opacity: ${GRAIN.opacity}, size: ${GRAIN.size}, fps: ${GRAIN.fps}, blend: '${GRAIN.blend}' };`;
-        const sync = () => {
-          inOpacity.value = String(GRAIN.opacity);
-          inSize.value = String(GRAIN.size);
-          inFps.value = String(GRAIN.fps);
-          inBlend.value = GRAIN.blend;
-          $('gOpacityOut').textContent = GRAIN.opacity.toFixed(3);
-          $('gSizeOut').textContent = GRAIN.size.toFixed(2);
-          $('gFpsOut').textContent = String(GRAIN.fps);
-          values.textContent = snippet();
-        };
-        const onInput = () => {
-          GRAIN.opacity = Number(inOpacity.value);
-          GRAIN.size = Number(inSize.value);
-          GRAIN.fps = Number(inFps.value);
-          GRAIN.blend = inBlend.value;
-          applyGrain();
-          sync();
-          console.log(snippet());
-        };
-        [inOpacity, inSize, inFps].forEach((el) => el.addEventListener('input', onInput));
-        inBlend.addEventListener('change', onInput);
-        $('gCopy').addEventListener('click', () => navigator.clipboard?.writeText(snippet()).catch(() => {}));
-        window.addEventListener('keydown', (e) => {
-          if ((e.key === 'g' || e.key === 'G') && !e.metaKey && !e.ctrlKey && !e.altKey) {
-            panel.hidden = !panel.hidden;
-            if (!panel.hidden) console.log(snippet());
-          }
-        });
-        sync();
-      }
 
       // -------- boot --------
 
