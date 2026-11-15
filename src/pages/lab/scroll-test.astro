@@ -52,6 +52,20 @@
         --accent-dim: rgba(239, 239, 12, 0.22);
         --accent-glow: rgba(239, 239, 12, 0.65);
         --ease: cubic-bezier(0.4, 0, 0.2, 1);
+        /* hotspot kinds: lore = yellow, process = mint */
+        --c: #efef0c;
+        --c-glow: rgba(239, 239, 12, 0.65);
+        --c-dim: rgba(239, 239, 12, 0.22);
+      }
+      .kind-lore {
+        --c: #efef0c;
+        --c-glow: rgba(239, 239, 12, 0.65);
+        --c-dim: rgba(239, 239, 12, 0.22);
+      }
+      .kind-process {
+        --c: #77ffd1;
+        --c-glow: rgba(119, 255, 209, 0.65);
+        --c-dim: rgba(119, 255, 209, 0.22);
       }
 
       *,
@@ -117,14 +131,12 @@
         color: var(--text);
         font: inherit;
         letter-spacing: inherit;
-        opacity: 0;
+        opacity: 0; /* faded in per frame from scroll position, see updateHotspots */
         pointer-events: none;
         cursor: pointer;
-        transition: opacity 200ms var(--ease);
-        will-change: transform;
+        will-change: transform, opacity;
       }
       .hotspot.is-visible {
-        opacity: 1;
         pointer-events: auto;
       }
       /* generous hit area around the 16px dot */
@@ -144,13 +156,13 @@
         width: 16px;
         height: 16px;
         border-radius: 50%;
-        border: 2px solid var(--accent);
+        border: 2px solid var(--c);
         background: transparent;
-        box-shadow: 0 0 8px 1px var(--accent-glow);
+        box-shadow: 0 0 8px 1px var(--c-glow);
         transition: background-color 300ms var(--ease), transform 200ms var(--ease);
       }
       .hotspot.is-passed .hotspot__dot {
-        background: var(--accent);
+        background: var(--c);
       }
       .hotspot:hover .hotspot__dot,
       .hotspot:focus-visible .hotspot__dot {
@@ -163,7 +175,7 @@
         content: '';
         position: absolute;
         inset: -8px;
-        border: 1px solid var(--accent);
+        border: 1px solid var(--c);
         border-radius: 50%;
         opacity: 0.5;
         animation: hotspot-pulse 2.4s var(--ease) infinite;
@@ -176,6 +188,49 @@
         text-transform: uppercase;
         letter-spacing: 0.15em;
         text-shadow: 0 0 6px var(--bg), 0 0 2px var(--bg);
+        opacity: 0;
+        transition: opacity 200ms var(--ease);
+        pointer-events: none;
+      }
+      .hotspot:hover .hotspot__label,
+      .hotspot:focus-visible .hotspot__label,
+      .hotspot[aria-expanded='true'] .hotspot__label {
+        opacity: 1;
+      }
+      /* lore marker: the starburst icon instead of a circle */
+      .hotspot__dot--lore {
+        left: -14px;
+        top: -14px;
+        width: 28px;
+        height: 28px;
+        border: 0;
+        border-radius: 0;
+        background: none;
+        box-shadow: none;
+      }
+      .hotspot__dot--lore::after {
+        display: none;
+      }
+      .hotspot.is-passed .hotspot__dot--lore {
+        background: none;
+      }
+      .hotspot__icon {
+        display: block;
+        width: 100%;
+        height: 100%;
+        filter: drop-shadow(0 0 6px var(--c-glow));
+        animation: hotspot-spin 28s linear infinite;
+        transition: opacity 300ms var(--ease);
+      }
+      /* once passed: settle — slower, dimmer */
+      .hotspot.is-passed .hotspot__icon {
+        opacity: 0.6;
+        animation-duration: 90s;
+      }
+      @keyframes hotspot-spin {
+        to {
+          transform: rotate(360deg);
+        }
       }
       @keyframes hotspot-pulse {
         0% {
@@ -242,18 +297,18 @@
         height: 16px;
         margin: -8px 0 0 -8px;
         padding: 0;
-        border: 2px solid var(--accent);
+        border: 2px solid var(--c);
         border-radius: 50%;
         background: var(--bg);
-        color: var(--accent);
+        color: var(--c);
         font: inherit;
         cursor: pointer;
         pointer-events: auto;
         transition: background-color 300ms var(--ease), box-shadow 300ms var(--ease), transform 200ms var(--ease);
       }
       .rail__stop.is-passed {
-        background: var(--accent);
-        box-shadow: 0 0 10px 2px var(--accent-glow);
+        background: var(--c);
+        box-shadow: 0 0 10px 2px var(--c-glow);
       }
       .rail__stop:hover,
       .rail__stop:focus-visible {
@@ -291,8 +346,8 @@
         position: absolute;
         height: 1px;
         transform-origin: 0 50%;
-        background: linear-gradient(90deg, var(--accent), rgba(239, 239, 12, 0.15));
-        box-shadow: 0 0 6px var(--accent-glow);
+        background: linear-gradient(90deg, var(--c), transparent);
+        box-shadow: 0 0 6px var(--c-glow);
         opacity: 0;
         transition: opacity 300ms var(--ease);
       }
@@ -309,7 +364,7 @@
         display: block;
         width: 100%;
         height: auto;
-        box-shadow: 0 0 0 1px var(--accent-dim), 0 0 30px rgba(239, 239, 12, 0.18), 0 12px 40px rgba(0, 0, 0, 0.55);
+        box-shadow: 0 0 0 1px var(--c-dim), 0 0 30px var(--c-dim), 0 12px 40px rgba(0, 0, 0, 0.55);
       }
       .lore.is-open .lore__line {
         opacity: 1;
@@ -354,7 +409,8 @@
       }
 
       @media (prefers-reduced-motion: reduce) {
-        .hotspot__dot::after {
+        .hotspot__dot::after,
+        .hotspot__icon {
           animation: none;
         }
         .lore__pop,
@@ -377,9 +433,12 @@
       };
       type Spot = { x: number; y: number; depth?: number; visible: boolean; occluded?: boolean | null };
       type HotspotFile = { frames: Record<string, Record<string, Spot>> };
+      type Kind = 'lore' | 'process';
       type Hotspot = {
         name: string;
+        kind: Kind;
         card: string;
+        reveal: [number, number]; // Blender frames over which the dot fades in
         frame: number; // Blender frame where the rail circle sits / counts as "passed"
         index: number; // resolved position in manifest.frames
         track: { x: number; y: number; depth: number; visible: boolean }[]; // per manifest frame
@@ -395,15 +454,21 @@
 
       // -------- config --------
 
-      // Hotspots with lore cards. `name` = Blender empty name, `card` = file in cards/,
-      // `frame` = where it sits on the rail (and when it flips from outline to filled).
-      // Frames = the last frame each empty is in view (from hotspots.json), i.e. the moment the
-      // camera has gone past it. Nudge freely if a different beat feels right.
-      const HOTSPOTS = [
-        { name: 'Researchers', card: 'researchers', frame: 324 },
-        { name: 'Orb Lore', card: 'orb-lore', frame: 355 },
-        { name: 'Geometry Lore', card: 'geometry-lore', frame: 296 },
+      // `name`   Blender empty name
+      // `kind`   'lore' = yellow starburst, 'process' = mint circle
+      // `card`   file in cards/ (cards/<card>.webp)
+      // `reveal` frames over which the marker fades in, so the world seems to "notice" you as you
+      //          approach instead of showing everything on load. Set near the camera's closest approach
+      //          (depth minima in hotspots.json: Geometry ~203, Researchers ~220, Orb ~289).
+      // `frame`  where it sits on the rail and when it flips outline -> filled: the last frame the empty
+      //          is in view. It also fades out over the EXIT_FADE frames before this.
+      type HotspotConfig = { name: string; kind: Kind; card: string; reveal: [number, number]; frame: number };
+      const HOTSPOTS: HotspotConfig[] = [
+        { name: 'Geometry Lore', kind: 'lore', card: 'geometry-lore', reveal: [140, 190], frame: 296 },
+        { name: 'Researchers', kind: 'lore', card: 'researchers', reveal: [165, 215], frame: 324 },
+        { name: 'Orb Lore', kind: 'lore', card: 'orb-lore', reveal: [215, 270], frame: 355 },
       ];
+      const EXIT_FADE = 24;
 
       const HIDE_OCCLUDED = false; // honour the raycast flag from the Blender export
       const SMOOTHING = 0.18; // 1 = no easing between scroll target and drawn frame
@@ -412,7 +477,9 @@
       const ANCHOR_STEP = 25; // frames kept decoded permanently as a fallback while scrubbing fast
       const WINDOW = 18; // frames decoded either side of the current one
 
-      const ROOT = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/lab/scroll-test`;
+      const BASE = import.meta.env.BASE_URL.replace(/\/$/, '');
+      const ROOT = `${BASE}/lab/scroll-test`;
+      const LORE_ICON = `${BASE}/icons/Lore%20Marker.png`;
       const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
       const mobileQuery = window.matchMedia('(max-width: 768px)');
 
@@ -639,17 +706,20 @@
 
           const dot = document.createElement('button');
           dot.type = 'button';
-          dot.className = 'hotspot';
+          dot.className = `hotspot kind-${cfg.kind}`;
           dot.tabIndex = -1;
-          dot.setAttribute('aria-label', `${cfg.name} — open lore card`);
-          dot.innerHTML = `<span class="hotspot__dot"></span><span class="hotspot__label"></span>`;
+          dot.setAttribute('aria-label', `${cfg.name} — open ${cfg.kind === 'lore' ? 'lore card' : 'details'}`);
+          dot.innerHTML =
+            cfg.kind === 'lore'
+              ? `<span class="hotspot__dot hotspot__dot--lore"><img class="hotspot__icon" src="${LORE_ICON}" alt="" draggable="false"></span><span class="hotspot__label"></span>`
+              : `<span class="hotspot__dot"></span><span class="hotspot__label"></span>`;
           dot.querySelector('.hotspot__label')!.textContent = cfg.name;
           dot.setAttribute('aria-expanded', 'false');
           hotspotLayer.append(dot);
 
           // The card: .lore is positioned per frame; .pose carries the perspective tilt; .pop animates open/close.
           const lore = document.createElement('div');
-          lore.className = 'lore';
+          lore.className = `lore kind-${cfg.kind}`;
           lore.innerHTML =
             `<div class="lore__line"></div><div class="lore__pose"><div class="lore__pop"><img class="lore__img" alt="" draggable="false"></div></div>`;
           const img = lore.querySelector('img')!;
@@ -659,7 +729,7 @@
 
           const stop = document.createElement('button');
           stop.type = 'button';
-          stop.className = 'rail__stop';
+          stop.className = `rail__stop kind-${cfg.kind}`;
           stop.style.top = `${(index / (n - 1)) * 100}%`;
           stop.setAttribute('aria-label', `${cfg.name} — jump to frame ${manifest.frames[index]}`);
           stop.innerHTML = `<span class="rail__label"></span>`;
@@ -754,18 +824,34 @@
         return true;
       }
 
+      const smoothstep = (a: number, b: number, x: number) => {
+        const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
+        return t * t * (3 - 2 * t);
+      };
+
       function updateHotspots(index: number) {
         for (const h of hotspots) {
           const t = h.track[index];
           const px = cover.x + t.x * cover.w;
           const py = cover.y + t.y * cover.h;
           // "In frame" in Blender isn't "on screen" once cover-fit crops the sides, so check the stage too.
-          const show = t.visible && px >= 8 && px <= stage.clientWidth - 8 && py >= 8 && py <= stage.clientHeight - 8;
+          const sw = stage.clientWidth;
+          const sh = stage.clientHeight;
+          const inStage = px >= 8 && px <= sw - 8 && py >= 8 && py <= sh - 8;
+          // Fade in as the camera approaches, out as it passes, and soften at the frame edge.
+          const f = Number(manifest.frames[index]);
+          const edge = Math.min(1, Math.max(0, (Math.min(px, sw - px, py, sh - py) - 8) / 48));
+          const alpha =
+            t.visible && inStage
+              ? smoothstep(h.reveal[0], h.reveal[1], f) * (1 - smoothstep(h.frame - EXIT_FADE, h.frame, f)) * edge
+              : 0;
+          const show = alpha > 0.4; // clickable once it's mostly there
+          h.dot.style.opacity = alpha.toFixed(3);
           h.dot.classList.toggle('is-visible', show);
           h.dot.tabIndex = show ? 0 : -1;
           h.dot.style.transform = `translate(${px.toFixed(1)}px, ${py.toFixed(1)}px)`;
 
-          if (!show && h.open) setOpen(h, false); // the dot left the frame, so does its card
+          if (alpha < 0.05 && h.open) setOpen(h, false); // the marker faded away, so does its card
 
           if (h.open || h.lore.classList.contains('is-open')) {
             const c = layoutCard(h, px, py, t.depth);
