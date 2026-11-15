@@ -27,8 +27,9 @@
     <main class="scroller" id="scroller">
       <div class="stage" id="stage">
         <canvas id="canvas" aria-label="Scroll-driven render sequence"></canvas>
+        <!-- Film grain: over the art, under hotspots/cards (and the rail, which is outside the stage). -->
+        <canvas class="grain" id="grain" aria-hidden="true"></canvas>
         <div class="hotspots" id="hotspots"></div>
-        <div class="grain" aria-hidden="true"></div>
       </div>
     </main>
 
@@ -40,6 +41,24 @@
     </div>
 
     <pre class="hud" id="hud">loading…</pre>
+
+    <!-- Temporary grain tuner — press G. -->
+    <div class="gdebug" id="gdebug" hidden>
+      <div class="gdebug__title">grain <span>(G to hide)</span></div>
+      <label>opacity <output id="gOpacityOut"></output><input id="gOpacity" type="range" min="0" max="0.4" step="0.005" /></label>
+      <label>size (px) <output id="gSizeOut"></output><input id="gSize" type="range" min="0.5" max="4" step="0.25" /></label>
+      <label>fps <output id="gFpsOut"></output><input id="gFps" type="range" min="4" max="60" step="1" /></label>
+      <label>blend
+        <select id="gBlend">
+          <option>soft-light</option>
+          <option>overlay</option>
+          <option>hard-light</option>
+          <option>normal</option>
+        </select>
+      </label>
+      <pre id="gValues"></pre>
+      <button type="button" id="gCopy">copy values</button>
+    </div>
 
     <style is:global>
       :root {
@@ -187,42 +206,76 @@
         }
       }
 
-      /* ---- film grain ---- */
+      /* ---- film grain (canvas, see script) ---- */
       .grain {
-        position: absolute;
-        inset: -100px;
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
         pointer-events: none;
-        opacity: 0.11;
-        mix-blend-mode: overlay;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 1.4 -0.2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-        background-size: 240px 240px;
-        animation: grain-shift 0.9s steps(1) infinite;
+        opacity: 0.08;
+        mix-blend-mode: soft-light;
       }
-      @keyframes grain-shift {
-        0% {
-          transform: translate(0, 0);
-        }
-        12% {
-          transform: translate(-37px, 61px);
-        }
-        25% {
-          transform: translate(52px, -24px);
-        }
-        37% {
-          transform: translate(-71px, -48px);
-        }
-        50% {
-          transform: translate(23px, 77px);
-        }
-        62% {
-          transform: translate(-58px, 14px);
-        }
-        75% {
-          transform: translate(66px, 43px);
-        }
-        87% {
-          transform: translate(-12px, -69px);
-        }
+
+      /* ---- grain debug panel ---- */
+      .gdebug {
+        position: fixed;
+        top: 16px;
+        left: 16px;
+        z-index: 30;
+        width: 220px;
+        padding: 12px;
+        background: rgba(26, 26, 26, 0.88);
+        border: 1px solid var(--accent-dim);
+        color: var(--text);
+        display: grid;
+        gap: 10px;
+      }
+      .gdebug[hidden] {
+        display: none;
+      }
+      .gdebug__title {
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        color: var(--accent);
+      }
+      .gdebug__title span {
+        color: var(--mid);
+        text-transform: none;
+        letter-spacing: 0.03em;
+      }
+      .gdebug label {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 4px 8px;
+        color: var(--mid);
+      }
+      .gdebug output {
+        color: var(--text);
+      }
+      .gdebug input[type='range'],
+      .gdebug select {
+        grid-column: 1 / -1;
+        width: 100%;
+        accent-color: var(--accent);
+      }
+      .gdebug select,
+      .gdebug button {
+        font: inherit;
+        color: var(--text);
+        background: var(--bg);
+        border: 1px solid var(--accent-dim);
+        padding: 4px 6px;
+      }
+      .gdebug button {
+        cursor: pointer;
+        color: var(--accent);
+      }
+      .gdebug pre {
+        margin: 0;
+        font: inherit;
+        white-space: pre-wrap;
+        color: var(--text);
       }
 
       /* ---- progress rail ---- */
@@ -380,7 +433,6 @@
       }
 
       @media (prefers-reduced-motion: reduce) {
-        .grain,
         .hotspot__dot::after {
           animation: none;
         }
@@ -728,7 +780,7 @@
       });
       // Click anywhere that isn't a dot or a card to dismiss.
       document.addEventListener('click', (e) => {
-        if (!(e.target as Element).closest('.hotspot, .lore__pose, .rail')) hotspots.forEach((h) => setOpen(h, false));
+        if (!(e.target as Element).closest('.hotspot, .lore__pose, .rail, .gdebug')) hotspots.forEach((h) => setOpen(h, false));
       });
 
       const CARD_ASPECT = 962 / 1920;
@@ -874,6 +926,154 @@
       rail.addEventListener('pointermove', (e) => {
         if (rail.hasPointerCapture(e.pointerId)) scrubTo(e.clientY);
       });
+
+      // -------- film grain --------
+      // Noise is generated once into a few small tiles. Each "frame" of grain just tiles one of them
+      // across a physical-pixel canvas at a random offset, at film cadence rather than every rAF.
+
+      const GRAIN = { opacity: 0.08, size: 1.25, fps: 18, blend: 'soft-light' }; // size = physical px per noise px
+      const GRAIN_TILE = 256;
+      const GRAIN_TILES = 8;
+      const grainCanvas = $('grain') as HTMLCanvasElement;
+      const gctx = grainCanvas.getContext('2d')!;
+      const grainTiles: HTMLCanvasElement[] = [];
+      let grainRaf = 0;
+      let grainLast = 0;
+      let grainIndex = 0;
+
+      function makeGrainTiles() {
+        const n = GRAIN_TILE;
+        for (let t = 0; t < GRAIN_TILES; t++) {
+          // Gaussian-ish noise (sum of uniforms), then a light wrapped blur so it clumps like silver
+          // halide rather than TV static. Wrapping keeps each tile seamless.
+          const raw = new Float32Array(n * n);
+          for (let i = 0; i < raw.length; i++) raw[i] = Math.random() + Math.random() + Math.random() + Math.random() - 2;
+          const soft = new Float32Array(n * n);
+          for (let y = 0; y < n; y++) {
+            for (let x = 0; x < n; x++) {
+              const xm = (x + n - 1) % n;
+              const xp = (x + 1) % n;
+              const ym = (y + n - 1) % n;
+              const yp = (y + 1) % n;
+              soft[y * n + x] =
+                (raw[y * n + x] * 4 + raw[y * n + xm] + raw[y * n + xp] + raw[ym * n + x] + raw[yp * n + x]) / 8;
+            }
+          }
+          const c = document.createElement('canvas');
+          c.width = c.height = n;
+          const cctx = c.getContext('2d')!;
+          const img = cctx.createImageData(n, n);
+          for (let i = 0; i < soft.length; i++) {
+            // Luminance only: R=G=B, centred on mid-grey (neutral for soft-light/overlay).
+            const v = Math.max(0, Math.min(255, 128 + soft[i] * 95));
+            img.data[i * 4] = img.data[i * 4 + 1] = img.data[i * 4 + 2] = v;
+            img.data[i * 4 + 3] = 255;
+          }
+          cctx.putImageData(img, 0, 0);
+          grainTiles.push(c);
+        }
+      }
+
+      function sizeGrain() {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        grainCanvas.width = Math.round(window.innerWidth * dpr);
+        grainCanvas.height = Math.round(window.innerHeight * dpr);
+      }
+
+      function drawGrain(index: number, still = false) {
+        const w = grainCanvas.width;
+        const h = grainCanvas.height;
+        const foot = GRAIN_TILE * GRAIN.size; // on-screen tile size, physical px
+        const ox = still ? 0 : -Math.random() * foot;
+        const oy = still ? 0 : -Math.random() * foot;
+        gctx.imageSmoothingEnabled = GRAIN.size % 1 !== 0; // crisp at whole sizes, soft otherwise
+        const tile = grainTiles[index];
+        for (let r = 0; oy + r * foot < h; r++) {
+          const y0 = Math.round(oy + r * foot);
+          const y1 = Math.round(oy + (r + 1) * foot);
+          for (let c = 0; ox + c * foot < w; c++) {
+            const x0 = Math.round(ox + c * foot);
+            const x1 = Math.round(ox + (c + 1) * foot);
+            gctx.drawImage(tile, x0, y0, x1 - x0, y1 - y0); // opaque tiles, so no clear needed
+          }
+        }
+      }
+
+      function grainLoop(now: number) {
+        grainRaf = requestAnimationFrame(grainLoop);
+        if (now - grainLast < 1000 / GRAIN.fps - 2) return;
+        grainLast = now;
+        grainIndex = (grainIndex + 1) % GRAIN_TILES;
+        drawGrain(grainIndex);
+      }
+
+      function applyGrain() {
+        grainCanvas.style.opacity = String(GRAIN.opacity);
+        grainCanvas.style.mixBlendMode = GRAIN.blend;
+        if (reduceMotion.matches) drawGrain(0, true); // size changed → repaint the static tile
+      }
+
+      function startGrain() {
+        cancelAnimationFrame(grainRaf);
+        grainRaf = 0;
+        if (reduceMotion.matches) {
+          drawGrain(0, true); // one static tile, no animation
+        } else if (!document.hidden) {
+          grainRaf = requestAnimationFrame(grainLoop);
+        }
+      }
+
+      makeGrainTiles();
+      sizeGrain();
+      applyGrain();
+      startGrain();
+      document.addEventListener('visibilitychange', startGrain);
+      reduceMotion.addEventListener('change', startGrain);
+      window.addEventListener('resize', () => {
+        sizeGrain();
+        drawGrain(grainIndex, reduceMotion.matches);
+      });
+
+      // Temporary tuner (G): sliders write straight into GRAIN so you can dial it in by eye.
+      {
+        const panel = $('gdebug');
+        const inOpacity = $('gOpacity') as HTMLInputElement;
+        const inSize = $('gSize') as HTMLInputElement;
+        const inFps = $('gFps') as HTMLInputElement;
+        const inBlend = $('gBlend') as HTMLSelectElement;
+        const values = $('gValues');
+        const snippet = () =>
+          `const GRAIN = { opacity: ${GRAIN.opacity}, size: ${GRAIN.size}, fps: ${GRAIN.fps}, blend: '${GRAIN.blend}' };`;
+        const sync = () => {
+          inOpacity.value = String(GRAIN.opacity);
+          inSize.value = String(GRAIN.size);
+          inFps.value = String(GRAIN.fps);
+          inBlend.value = GRAIN.blend;
+          $('gOpacityOut').textContent = GRAIN.opacity.toFixed(3);
+          $('gSizeOut').textContent = GRAIN.size.toFixed(2);
+          $('gFpsOut').textContent = String(GRAIN.fps);
+          values.textContent = snippet();
+        };
+        const onInput = () => {
+          GRAIN.opacity = Number(inOpacity.value);
+          GRAIN.size = Number(inSize.value);
+          GRAIN.fps = Number(inFps.value);
+          GRAIN.blend = inBlend.value;
+          applyGrain();
+          sync();
+          console.log(snippet());
+        };
+        [inOpacity, inSize, inFps].forEach((el) => el.addEventListener('input', onInput));
+        inBlend.addEventListener('change', onInput);
+        $('gCopy').addEventListener('click', () => navigator.clipboard?.writeText(snippet()).catch(() => {}));
+        window.addEventListener('keydown', (e) => {
+          if ((e.key === 'g' || e.key === 'G') && !e.metaKey && !e.ctrlKey && !e.altKey) {
+            panel.hidden = !panel.hidden;
+            if (!panel.hidden) console.log(snippet());
+          }
+        });
+        sync();
+      }
 
       // -------- boot --------
 
