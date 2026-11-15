@@ -1,0 +1,762 @@
+---
+// Hidden route (noindex): the multi-piece reel. Built on the scroll-test prototype.
+// Data:   src/data/pieces.json   (edit titles/hooks there)
+// Frames: node scripts/convert-frames.mjs reel   -> public/lab/reel/<id>/...
+import pieces from '../../data/pieces.json';
+import { buildTimeline, timecode, VF } from '../../scripts/reel/timeline';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+
+// End card: placeholders, swap in your own.
+const END = {
+  name: 'Your Name',
+  pitch: 'Placeholder pitch: one line on what you make and who it is for.',
+  email: 'mooon.wtr@gmail.com',
+  instagram: 'https://www.instagram.com/mooon.wtr/',
+  handle: '@mooon.wtr',
+};
+
+// Index timecodes (virtual 24 fps reel time), same maths as the player.
+const tl = buildTimeline(pieces.map((p) => p.frameCount), 800);
+const tapes = pieces.map((p, i) => ({
+  ...p,
+  no: String(i + 1).padStart(2, '0'),
+  tcIn: timecode(tl.pieceVStart[i]),
+  tcRun: timecode(tl.pieceVLen[i]),
+  still: `${base}/${p.frames}/still.webp`,
+}));
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Lab: reel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=VT323&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+
+  <body data-base={base}>
+    <script is:inline type="application/json" id="pieces-data" set:html={JSON.stringify(pieces)}></script>
+
+    <main class="scroller" id="scroller">
+      <div class="stage" id="stage">
+        <canvas class="stage__bg" id="bg" aria-hidden="true"></canvas>
+        <canvas class="stage__art" id="art" role="img" aria-label="Scroll-driven render sequence"></canvas>
+        <div class="stage__fade" id="fade" aria-hidden="true"></div>
+        <!-- Film grain: over the art, under the title cards, hotspots and UI. -->
+        <canvas class="grain" id="grain" aria-hidden="true"></canvas>
+
+        <section class="title" id="titleCard" aria-live="polite">
+          <p class="title__idx" id="titleIdx"></p>
+          <h1 class="title__name" id="titleName"></h1>
+          <p class="title__meta" id="titleMeta"></p>
+          <p class="title__hook" id="titleHook"></p>
+        </section>
+
+        <section class="end" id="endCard">
+          <p class="end__name">{END.name}</p>
+          <p class="end__pitch">{END.pitch}</p>
+          <p class="end__links">
+            <a href={`mailto:${END.email}`}>{END.email}</a>
+            <a href={END.instagram} target="_blank" rel="noopener noreferrer">{END.handle}</a>
+          </p>
+          <button class="btn" id="endTop" type="button">&#9664;&#9664; back to start</button>
+        </section>
+
+        <div class="hotspots" id="hotspots"></div>
+        <canvas class="vcr" id="vcr" aria-hidden="true"></canvas>
+      </div>
+    </main>
+
+    <!-- UI: everything below sits above the stage -->
+    <div class="osd" id="osd" aria-hidden="true">
+      <div class="osd__mode" id="osdMode">&#9654; PLAY</div>
+      <div class="osd__tc" id="osdTc">00:00:00:00</div>
+      <div class="osd__piece" id="osdPiece"></div>
+    </div>
+    <div class="vcr-label" id="vcrLabel" aria-hidden="true"></div>
+
+    <button class="btn index-btn" id="indexBtn" type="button" aria-expanded="false" aria-controls="tape">&#9636; Index</button>
+    <a class="btn work" href={`mailto:${END.email}?subject=Work%20with%20me`}>work with me &#8599;</a>
+
+    <!-- Progress rail: thin segments for pieces before/after, the current piece's own line + markers between. -->
+    <nav class="rail" id="rail" aria-label="Reel position">
+      <div class="rail__group" id="railBefore"></div>
+      <div class="rail__main" id="railMain">
+        <div class="rail__track" aria-hidden="true"></div>
+        <div class="rail__fill" id="railFill" aria-hidden="true"></div>
+        <div class="rail__stops"></div>
+      </div>
+      <div class="rail__group" id="railAfter"></div>
+    </nav>
+
+    <!-- Index: full-screen tape labels -->
+    <div class="tape" id="tape" hidden role="dialog" aria-modal="true" aria-label="Reel index">
+      <div class="tape__bar">
+        <span>TAPE INDEX &middot; {pieces.length} PIECES</span>
+        <button class="btn" id="tapeClose" type="button">close &times;</button>
+      </div>
+      <div class="tape__grid">
+        {tapes.map((t, i) => (
+          <button class="tape__item" type="button" data-i={i}>
+            <img class="tape__still" src={t.still} alt="" loading="lazy" width="84" height="150" />
+            <span class="tape__body">
+              <span class="tape__no">TAPE {t.no}</span>
+              <span class="tape__title">{t.title}</span>
+              <span class="tape__meta">{t.year} &middot; {t.medium}</span>
+              <span class="tape__hook">{t.hook}</span>
+              <span class="tape__tc"><span><b>IN</b> {t.tcIn}</span><span><b>RUN</b> {t.tcRun}</span></span>
+            </span>
+          </button>
+        ))}
+      </div>
+    </div>
+
+    <pre class="hud" id="hud" hidden></pre>
+
+    <!-- Debug (G): grain tuner + HUD -->
+    <div class="gdebug" id="gdebug" hidden>
+      <div class="gdebug__title">grain <span>(G to hide)</span></div>
+      <label>opacity <output id="gOpacityOut"></output><input id="gOpacity" type="range" min="0" max="0.4" step="0.005" /></label>
+      <label>size (px) <output id="gSizeOut"></output><input id="gSize" type="range" min="0.5" max="4" step="0.25" /></label>
+      <label>fps <output id="gFpsOut"></output><input id="gFps" type="range" min="4" max="60" step="1" /></label>
+      <label>blend
+        <select id="gBlend">
+          <option>soft-light</option>
+          <option>overlay</option>
+          <option>hard-light</option>
+          <option>normal</option>
+        </select>
+      </label>
+      <pre id="gValues"></pre>
+      <button type="button" id="gCopy">copy values</button>
+    </div>
+
+    <style is:global>
+      :root {
+        --bg: #1a1a1a;
+        --text: #f5f2ed;
+        --mid: #888888;
+        --accent: #efef0c;
+        --accent-dim: rgba(239, 239, 12, 0.22);
+        --accent-glow: rgba(239, 239, 12, 0.65);
+        --ease: cubic-bezier(0.4, 0, 0.2, 1);
+        /* hotspot kinds: lore = yellow, process = mint */
+        --c: #efef0c;
+        --c-glow: rgba(239, 239, 12, 0.65);
+        --c-dim: rgba(239, 239, 12, 0.22);
+        --osd: 'VT323', 'Space Mono', ui-monospace, monospace;
+      }
+      .kind-lore { --c: #efef0c; --c-glow: rgba(239, 239, 12, 0.65); --c-dim: rgba(239, 239, 12, 0.22); }
+      .kind-process { --c: #77ffd1; --c-glow: rgba(119, 255, 209, 0.65); --c-dim: rgba(119, 255, 209, 0.22); }
+
+      *, *::before, *::after { box-sizing: border-box; }
+      html { background: #000; scrollbar-width: none; }
+      html::-webkit-scrollbar { display: none; }
+      body {
+        margin: 0;
+        background: #000;
+        color: var(--text);
+        font-family: 'Space Mono', ui-monospace, monospace;
+        font-size: 11px;
+        letter-spacing: 0.03em;
+      }
+      a { color: inherit; }
+
+      /* height is set from the timeline in script */
+      .scroller { height: 4000vh; }
+      .stage {
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        height: 100dvh;
+        overflow: hidden;
+        background: #000;
+      }
+      .stage__bg {
+        position: absolute;
+        inset: -6%;
+        width: 112%;
+        height: 112%;
+        filter: blur(26px) brightness(0.45) saturate(1.15);
+        opacity: 0;
+        transition: opacity 400ms var(--ease);
+      }
+      .stage.is-letterbox .stage__bg { opacity: 1; }
+      .stage__art {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+      .stage__fade {
+        position: absolute;
+        inset: 0;
+        background: #000;
+        opacity: 1;
+        pointer-events: none;
+      }
+
+      /* ---- title card ---- */
+      .title {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        padding: 0 24px;
+        text-align: center;
+        pointer-events: none;
+        opacity: 0;
+        text-shadow: 0 0 24px rgba(0, 0, 0, 0.8);
+      }
+      .title__idx, .title__meta {
+        margin: 0;
+        text-transform: uppercase;
+        letter-spacing: 0.2em;
+        color: var(--mid);
+      }
+      .title__meta { color: var(--text); }
+      .title__name {
+        margin: 6px 0;
+        font-weight: 400;
+        font-size: clamp(2.4rem, 8vw, 6.5rem);
+        line-height: 1;
+        letter-spacing: -0.03em;
+      }
+      .title__hook {
+        margin: 8px 0 0;
+        max-width: 38ch;
+        font-size: 14px;
+        line-height: 1.6;
+        color: var(--text);
+      }
+
+      /* ---- end card ---- */
+      .end {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 18px;
+        padding: 0 24px;
+        text-align: center;
+        opacity: 0;
+        pointer-events: none;
+      }
+      .end.is-live { pointer-events: auto; }
+      .end__name { margin: 0; font-size: clamp(2rem, 6vw, 4.5rem); letter-spacing: -0.03em; }
+      .end__pitch { margin: 0; max-width: 44ch; font-size: 14px; line-height: 1.6; color: var(--mid); }
+      .end__links { margin: 8px 0 14px; display: flex; gap: 28px; flex-wrap: wrap; justify-content: center; font-size: 13px; }
+      .end__links a { text-decoration: none; border-bottom: 1px solid var(--accent); padding-bottom: 2px; }
+      .end__links a:hover { color: var(--accent); }
+
+      /* ---- hotspot dots on the art ---- */
+      .hotspots {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+      }
+      .hotspot {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 0;
+        height: 0;
+        padding: 0;
+        border: 0;
+        background: none;
+        color: var(--text);
+        font: inherit;
+        letter-spacing: inherit;
+        opacity: 0; /* faded in per frame from scroll position, see updateHotspots */
+        pointer-events: none;
+        cursor: pointer;
+        will-change: transform, opacity;
+      }
+      .hotspot.is-visible {
+        pointer-events: auto;
+      }
+      /* generous hit area around the 16px dot */
+      .hotspot::before {
+        content: '';
+        position: absolute;
+        left: -24px;
+        top: -24px;
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+      }
+      .hotspot__dot {
+        position: absolute;
+        left: -8px;
+        top: -8px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        border: 2px solid var(--c);
+        background: transparent;
+        box-shadow: 0 0 8px 1px var(--c-glow);
+        transition: background-color 300ms var(--ease), transform 200ms var(--ease);
+      }
+      .hotspot.is-passed .hotspot__dot {
+        background: var(--c);
+      }
+      .hotspot:hover .hotspot__dot,
+      .hotspot:focus-visible .hotspot__dot {
+        transform: scale(1.25);
+      }
+      .hotspot:focus-visible {
+        outline: none;
+      }
+      .hotspot__dot::after {
+        content: '';
+        position: absolute;
+        inset: -8px;
+        border: 1px solid var(--c);
+        border-radius: 50%;
+        opacity: 0.5;
+        animation: hotspot-pulse 2.4s var(--ease) infinite;
+      }
+      .hotspot__label {
+        position: absolute;
+        left: 20px;
+        top: -8px;
+        white-space: nowrap;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        text-shadow: 0 0 6px var(--bg), 0 0 2px var(--bg);
+        opacity: 0;
+        transition: opacity 200ms var(--ease);
+        pointer-events: none;
+      }
+      .hotspot:hover .hotspot__label,
+      .hotspot:focus-visible .hotspot__label,
+      .hotspot[aria-expanded='true'] .hotspot__label {
+        opacity: 1;
+      }
+      /* lore marker: the starburst icon instead of a circle */
+      .hotspot__dot--lore {
+        left: -14px;
+        top: -14px;
+        width: 28px;
+        height: 28px;
+        border: 0;
+        border-radius: 0;
+        background: none;
+        box-shadow: none;
+      }
+      .hotspot__dot--lore::after {
+        display: none;
+      }
+      .hotspot.is-passed .hotspot__dot--lore {
+        background: none;
+      }
+      .hotspot__icon {
+        display: block;
+        width: 100%;
+        height: 100%;
+        filter: drop-shadow(0 0 6px var(--c-glow));
+        animation: hotspot-spin 28s linear infinite;
+        transition: opacity 300ms var(--ease);
+      }
+      /* once passed: settle — slower, dimmer */
+      .hotspot.is-passed .hotspot__icon {
+        opacity: 0.6;
+        animation-duration: 90s;
+      }
+      @keyframes hotspot-spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      @keyframes hotspot-pulse {
+        0% {
+          transform: scale(0.6);
+          opacity: 0.7;
+        }
+        100% {
+          transform: scale(1.8);
+          opacity: 0;
+        }
+      }
+
+
+      /* ---- film grain (canvas, see script) ---- */
+      .grain {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        opacity: 0.19;
+        mix-blend-mode: hard-light;
+      }
+
+      /* ---- VCR transition overlay ---- */
+      .vcr {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 260ms var(--ease);
+        filter: contrast(1.15) saturate(1.3);
+      }
+      .vcr.is-on { opacity: 1; transition-duration: 90ms; }
+      .vcr-label {
+        position: fixed;
+        top: 14%;
+        left: 0;
+        right: 0;
+        z-index: 20;
+        text-align: center;
+        font-family: var(--osd);
+        font-size: clamp(40px, 9vw, 84px);
+        letter-spacing: 0.1em;
+        color: #f5f2ed;
+        text-shadow: 3px 0 rgba(255, 0, 60, 0.6), -3px 0 rgba(0, 200, 255, 0.5), 0 0 14px rgba(255, 255, 255, 0.4);
+        opacity: 0;
+        pointer-events: none;
+      }
+      .vcr-label.is-on { opacity: 1; animation: osd-blink 0.5s steps(1) infinite; }
+      @keyframes osd-blink { 50% { opacity: 0.35; } }
+
+      /* ---- VCR on-screen display ---- */
+      .osd {
+        position: fixed;
+        top: 14px;
+        left: 18px;
+        z-index: 15;
+        font-family: var(--osd);
+        line-height: 1;
+        color: #f5f2ed;
+        /* chroma-split fringe, plus a dark halo so it stays readable over bright frames */
+        text-shadow: 2px 0 rgba(255, 0, 60, 0.5), -2px 0 rgba(0, 200, 255, 0.4), 0 0 3px rgba(0, 0, 0, 0.95), 0 0 12px rgba(0, 0, 0, 0.7);
+        pointer-events: none;
+      }
+      .osd__mode { font-size: 26px; letter-spacing: 0.08em; }
+      .osd.is-paused .osd__mode { animation: osd-blink 1s steps(1) infinite; }
+      .osd__tc { font-size: 40px; letter-spacing: 0.06em; margin-top: 2px; }
+      .osd__piece {
+        margin-top: 6px;
+        font-family: 'Space Mono', ui-monospace, monospace;
+        font-size: 10px;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: #cfcac2;
+        text-shadow: 0 0 3px #000, 0 0 8px #000;
+      }
+
+      /* ---- buttons / links ---- */
+      .btn {
+        font: inherit;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        color: var(--text);
+        background: rgba(26, 26, 26, 0.62);
+        border: 1px solid rgba(245, 242, 237, 0.35);
+        padding: 7px 11px;
+        cursor: pointer;
+        text-decoration: none;
+        white-space: nowrap;
+        transition: border-color 200ms var(--ease), color 200ms var(--ease);
+      }
+      .btn:hover, .btn:focus-visible { border-color: var(--accent); color: var(--accent); outline: none; }
+      .index-btn { position: fixed; top: 14px; right: 52px; z-index: 15; }
+      .work { position: fixed; bottom: 16px; right: 52px; z-index: 40; }
+
+      /* ---- progress rail ---- */
+      .rail {
+        position: fixed;
+        top: 24px;
+        bottom: 24px;
+        right: 8px;
+        width: 28px;
+        z-index: 12;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+      }
+      .rail__group { display: flex; flex-direction: column; align-items: center; flex: none; }
+      .rail__seg {
+        position: relative;
+        width: 28px;
+        height: 14px;
+        padding: 0;
+        border: 0;
+        background: none;
+        cursor: pointer;
+      }
+      .rail__seg::after {
+        content: '';
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 2px;
+        height: 8px;
+        margin: -4px 0 0 -1px;
+        background: var(--accent-dim);
+        transition: background-color 200ms var(--ease);
+      }
+      .rail__seg.is-done::after { background: var(--accent); opacity: 0.75; }
+      .rail__seg:hover::after, .rail__seg:focus-visible::after { background: var(--accent); opacity: 1; }
+      .rail__seg:focus-visible { outline: none; }
+      .rail__main { position: relative; flex: 1; width: 28px; min-height: 40px; cursor: default; }
+      .rail__track, .rail__fill {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 50%;
+        width: 2px;
+        margin-left: -1px;
+      }
+      .rail__track { background: var(--accent-dim); }
+      .rail__fill {
+        background: var(--accent);
+        box-shadow: 0 0 8px 1px var(--accent-glow), 0 0 22px 2px rgba(239, 239, 12, 0.3);
+        transform-origin: top;
+        transform: scaleY(0);
+        will-change: transform;
+      }
+      .rail__stops {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+      }
+      /* hollow circle (the line is masked behind it) that fills once passed */
+      .rail__stop {
+        position: absolute;
+        left: 50%;
+        width: 16px;
+        height: 16px;
+        margin: -8px 0 0 -8px;
+        padding: 0;
+        border: 2px solid var(--c);
+        border-radius: 50%;
+        background: var(--bg);
+        color: var(--c);
+        font: inherit;
+        cursor: pointer;
+        pointer-events: auto;
+        transition: background-color 300ms var(--ease), box-shadow 300ms var(--ease), transform 200ms var(--ease);
+      }
+      .rail__stop.is-passed {
+        background: var(--c);
+        box-shadow: 0 0 10px 2px var(--c-glow);
+      }
+      .rail__stop:hover,
+      .rail__stop:focus-visible {
+        transform: scale(1.25);
+        outline: none;
+      }
+      .rail__label {
+        position: absolute;
+        right: 26px;
+        top: 50%;
+        transform: translateY(-50%);
+        white-space: nowrap;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        color: var(--text);
+        text-shadow: 0 0 6px var(--bg), 0 0 2px var(--bg);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 200ms var(--ease);
+      }
+      .rail__stop:hover .rail__label,
+      .rail__stop:focus-visible .rail__label {
+        opacity: 1;
+      }
+
+
+      /* ---- lore cards, pinned in the scene next to their dot ---- */
+      .lore {
+        position: absolute;
+        left: 0;
+        top: 0;
+        pointer-events: none;
+        will-change: transform;
+      }
+      .lore__line {
+        position: absolute;
+        height: 1px;
+        transform-origin: 0 50%;
+        background: linear-gradient(90deg, var(--c), transparent);
+        box-shadow: 0 0 6px var(--c-glow);
+        opacity: 0;
+        transition: opacity 300ms var(--ease);
+      }
+      .lore__pose {
+        /* per-frame perspective tilt is set inline; no transition here */
+        transform-style: flat;
+      }
+      .lore__pop {
+        opacity: 0;
+        transform: scale(0.55) rotateY(var(--pop-spin, 40deg));
+        transition: opacity 250ms var(--ease), transform 450ms cubic-bezier(0.2, 0.9, 0.25, 1.1);
+      }
+      .lore__img {
+        display: block;
+        width: 100%;
+        height: auto;
+        box-shadow: 0 0 0 1px var(--c-dim), 0 0 30px var(--c-dim), 0 12px 40px rgba(0, 0, 0, 0.55);
+      }
+      .lore.is-open .lore__line {
+        opacity: 1;
+      }
+      .lore.is-open .lore__pop {
+        opacity: 1;
+        transform: scale(1) rotateY(0deg);
+      }
+      .lore.is-open .lore__pose {
+        pointer-events: auto;
+        cursor: pointer;
+      }
+
+
+      /* ---- index: tape labels ---- */
+      .tape {
+        position: fixed;
+        inset: 0;
+        z-index: 25;
+        display: flex;
+        flex-direction: column;
+        background:
+          repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 3px),
+          rgba(8, 8, 8, 0.985);
+        animation: tape-in 250ms var(--ease);
+      }
+      .tape[hidden] { display: none; }
+      @keyframes tape-in { from { opacity: 0; } to { opacity: 1; } }
+      .tape__bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 52px 14px 18px;
+        font-family: var(--osd);
+        font-size: 24px;
+        letter-spacing: 0.1em;
+        color: var(--text);
+      }
+      .tape__grid {
+        flex: 1;
+        overflow-y: auto;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+        gap: 14px;
+        padding: 8px 52px 56px 18px;
+        align-content: start;
+      }
+      .tape__item {
+        display: grid;
+        grid-template-columns: 84px 1fr;
+        gap: 14px;
+        text-align: left;
+        font: inherit;
+        color: #1a1a1a;
+        background: #f5f2ed;
+        border: 0;
+        border-left: 6px solid var(--accent);
+        padding: 10px 12px 10px 10px;
+        cursor: pointer;
+        transition: transform 200ms var(--ease), box-shadow 200ms var(--ease);
+      }
+      .tape__item:hover, .tape__item:focus-visible { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6); outline: none; }
+      .tape__item[aria-current='true'] { box-shadow: 0 0 0 2px var(--accent), 0 0 24px var(--accent-dim); }
+      .tape__still {
+        width: 84px;
+        height: 150px;
+        object-fit: cover;
+        background: #000;
+        filter: contrast(1.05) saturate(0.9);
+      }
+      .tape__body { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+      .tape__no { font-size: 10px; letter-spacing: 0.2em; color: #888; }
+      .tape__title { font-size: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+      .tape__meta { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #555; }
+      .tape__hook { font-size: 11px; line-height: 1.5; color: #333; }
+      .tape__tc { margin-top: auto; display: flex; flex-direction: column; font-family: var(--osd); font-size: 19px; letter-spacing: 0.04em; line-height: 1.1; }
+      .tape__tc b { display: inline-block; width: 3.2em; }
+      .tape__tc b { font-family: 'Space Mono', monospace; font-weight: 400; font-size: 9px; letter-spacing: 0.15em; color: #888; }
+
+      /* ---- debug ---- */
+      .hud {
+        position: fixed;
+        left: 16px;
+        bottom: 16px;
+        z-index: 30;
+        margin: 0;
+        padding: 8px;
+        font: inherit;
+        line-height: 1.6;
+        color: var(--text);
+        background: rgba(26, 26, 26, 0.75);
+        pointer-events: none;
+      }
+      .hud[hidden], .gdebug[hidden] { display: none; }
+      .gdebug {
+        position: fixed;
+        top: 96px;
+        left: 16px;
+        z-index: 30;
+        width: 220px;
+        padding: 12px;
+        background: rgba(26, 26, 26, 0.88);
+        border: 1px solid var(--accent-dim);
+        display: grid;
+        gap: 10px;
+      }
+      .gdebug__title { text-transform: uppercase; letter-spacing: 0.15em; color: var(--accent); }
+      .gdebug__title span { color: var(--mid); text-transform: none; letter-spacing: 0.03em; }
+      .gdebug label { display: grid; grid-template-columns: 1fr auto; gap: 4px 8px; color: var(--mid); }
+      .gdebug output { color: var(--text); }
+      .gdebug input[type='range'], .gdebug select { grid-column: 1 / -1; width: 100%; accent-color: var(--accent); }
+      .gdebug select, .gdebug button {
+        font: inherit;
+        color: var(--text);
+        background: var(--bg);
+        border: 1px solid var(--accent-dim);
+        padding: 4px 6px;
+      }
+      .gdebug button { cursor: pointer; color: var(--accent); }
+      .gdebug pre { margin: 0; font: inherit; white-space: pre-wrap; }
+
+      @media (max-width: 768px) {
+        .osd__tc { font-size: 32px; }
+        .osd__mode { font-size: 22px; }
+        .index-btn { right: 44px; }
+        .work { right: 44px; }
+        .tape__grid { padding-right: 44px; }
+        .tape__bar { padding-right: 44px; }
+        .rail__label, .hotspot__label { display: none; }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .hotspot__dot::after, .hotspot__icon, .tape, .osd.is-paused .osd__mode, .vcr-label.is-on { animation: none; }
+        .lore__pop, .lore__line, .vcr, .stage__bg { transition: none; }
+        .hotspot, .hotspot__dot, .rail__stop, .rail__label { transition: none; }
+      }
+    </style>
+
+    <script>
+      import { start } from '../../scripts/reel/main';
+      start();
+    </script>
+  </body>
+</html>

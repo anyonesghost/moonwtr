@@ -1,0 +1,74 @@
+[
+  {
+    "id": "the-cascades",
+    "title": "The Cascades",
+    "year": "2026",
+    "medium": "3D animation / Blender",
+    "hook": "Placeholder hook: one line that makes you stay.",
+    "source": "raw/The Cascades/PNG",
+    "frames": "lab/reel/the-cascades",
+    "frameCount": 481,
+    "orientation": "vertical",
+    "hotspots": null
+  },
+  {
+    "id": "the-wandering",
+    "title": "The Wandering",
+    "year": "2026",
+    "medium": "3D animation / Blender",
+    "hook": "Placeholder hook: one line that makes you stay.",
+    "source": "raw/The Wandering/PNG",
+    "frames": "lab/reel/the-wandering",
+    "frameCount": 481,
+    "orientation": "vertical",
+    "hotspots": null
+  },
+  {
+    "id": "the-witness",
+    "title": "The Witness",
+    "year": "2026",
+    "medium": "3D animation / Blender",
+    "hook": "Placeholder hook: one line that makes you stay.",
+    "source": "raw/The Witness/PNG",
+    "frames": "lab/reel/the-witness",
+    "frameCount": 481,
+    "orientation": "vertical",
+    "hotspots": null
+  },
+  {
+    "id": "the-nest",
+    "title": "The Nest",
+    "year": "2026",
+    "medium": "3D animation / Blender",
+    "hook": "Placeholder hook: one line that makes you stay.",
+    "source": "raw/The Nest/PNG",
+    "frames": "lab/reel/the-nest",
+    "frameCount": 480,
+    "orientation": "vertical",
+    "hotspots": null
+  },
+  {
+    "id": "the-stormy-cliff",
+    "title": "The Stormy Cliff",
+    "year": "2026",
+    "medium": "3D animation / Blender",
+    "hook": "Placeholder hook: one line that makes you stay.",
+    "source": "raw/The Stormy Cliff/PNG",
+    "frames": "lab/reel/the-stormy-cliff",
+    "frameCount": 480,
+    "orientation": "vertical",
+    "hotspots": null
+  },
+  {
+    "id": "the-inferno",
+    "title": "The Inferno",
+    "year": "2026",
+    "medium": "3D animation / Blender",
+    "hook": "Placeholder hook: one line that makes you stay.",
+    "source": "raw/the inferno/PNG",
+    "frames": "lab/reel/the-inferno",
+    "frameCount": 250,
+    "orientation": "vertical",
+    "hotspots": null
+  }
+]
