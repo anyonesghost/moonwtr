@@ -439,8 +439,10 @@
         kind: Kind;
         card: string;
         reveal: [number, number]; // Blender frames over which the dot fades in
-        frame: number; // Blender frame where the rail circle sits / counts as "passed"
+        frame: number; // last frame the empty is in view: the dot fills / fades out here
         index: number; // resolved position in manifest.frames
+        railIndex: number; // where the rail circle sits: the moment the marker comes into view
+        railPassed: boolean;
         track: { x: number; y: number; depth: number; visible: boolean }[]; // per manifest frame
         dot: HTMLButtonElement;
         stop: HTMLButtonElement;
@@ -703,6 +705,8 @@
         const n = manifest.frames.length;
         for (const cfg of HOTSPOTS) {
           const index = nearestIndex(cfg.frame);
+          // The rail circle marks when the marker appears (midpoint of its fade-in), not when it leaves.
+          const railIndex = nearestIndex(Math.round((cfg.reveal[0] + cfg.reveal[1]) / 2));
 
           const dot = document.createElement('button');
           dot.type = 'button';
@@ -730,17 +734,19 @@
           const stop = document.createElement('button');
           stop.type = 'button';
           stop.className = `rail__stop kind-${cfg.kind}`;
-          stop.style.top = `${(index / (n - 1)) * 100}%`;
-          stop.setAttribute('aria-label', `${cfg.name} — jump to frame ${manifest.frames[index]}`);
+          stop.style.top = `${(railIndex / (n - 1)) * 100}%`;
+          stop.setAttribute('aria-label', `${cfg.name} — jump to frame ${manifest.frames[railIndex]}`);
           stop.innerHTML = `<span class="rail__label"></span>`;
           stop.querySelector('.rail__label')!.textContent = cfg.name;
           stop.addEventListener('pointerdown', (e) => e.stopPropagation()); // don't start a rail drag
-          stop.addEventListener('click', () => scrollToProgress(index / (n - 1), true));
+          stop.addEventListener('click', () => scrollToProgress(railIndex / (n - 1), true));
           railStops.append(stop);
 
           const h: Hotspot = {
             ...cfg,
             index,
+            railIndex,
+            railPassed: false,
             track: buildTrack(cfg.name),
             dot,
             stop,
@@ -876,7 +882,11 @@
           if (passed !== h.passed) {
             h.passed = passed;
             h.dot.classList.toggle('is-passed', passed);
-            h.stop.classList.toggle('is-passed', passed);
+          }
+          const railPassed = index >= h.railIndex;
+          if (railPassed !== h.railPassed) {
+            h.railPassed = railPassed;
+            h.stop.classList.toggle('is-passed', railPassed);
           }
         }
       }

@@ -25,7 +25,9 @@ export interface Rect {
 
 interface Marker {
   cfg: MarkerConfig;
-  index: number;
+  index: number; // pass frame (dot fills / fades out)
+  railIndex: number; // rail circle: the moment the marker comes into view
+  railPassed: boolean;
   track: Track;
   dot: HTMLButtonElement;
   stop: HTMLButtonElement;
@@ -68,6 +70,8 @@ export class PieceHotspots {
     const n = d.frameIds.length;
     for (const cfg of d.markers) {
       const index = this.nearestIndex(cfg.frame);
+      // The rail circle marks when the marker appears (midpoint of its fade-in), not when it leaves.
+      const railIndex = this.nearestIndex(Math.round((cfg.reveal[0] + cfg.reveal[1]) / 2));
 
       const dot = document.createElement('button');
       dot.type = 'button';
@@ -93,17 +97,19 @@ export class PieceHotspots {
       const stop = document.createElement('button');
       stop.type = 'button';
       stop.className = `rail__stop kind-${cfg.kind}`;
-      stop.style.top = `${(index / (n - 1)) * 100}%`;
-      stop.setAttribute('aria-label', `${cfg.name}: jump to frame ${d.frameIds[index]}`);
+      stop.style.top = `${(railIndex / (n - 1)) * 100}%`;
+      stop.setAttribute('aria-label', `${cfg.name}: jump to frame ${d.frameIds[railIndex]}`);
       stop.innerHTML = `<span class="rail__label"></span>`;
       stop.querySelector('.rail__label')!.textContent = cfg.name;
       stop.addEventListener('pointerdown', (e) => e.stopPropagation());
-      stop.addEventListener('click', () => d.gotoFrame(index));
+      stop.addEventListener('click', () => d.gotoFrame(railIndex));
       d.railMain.querySelector('.rail__stops')!.append(stop);
 
       const m: Marker = {
         cfg,
         index,
+        railIndex,
+        railPassed: false,
         track: this.buildTrack(cfg.name),
         dot,
         stop,
@@ -250,7 +256,11 @@ export class PieceHotspots {
       if (passed !== m.passed) {
         m.passed = passed;
         m.dot.classList.toggle('is-passed', passed);
-        m.stop.classList.toggle('is-passed', passed);
+      }
+      const railPassed = index >= m.railIndex;
+      if (railPassed !== m.railPassed) {
+        m.railPassed = railPassed;
+        m.stop.classList.toggle('is-passed', railPassed);
       }
     }
   }
