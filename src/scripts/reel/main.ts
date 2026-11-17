@@ -27,6 +27,8 @@ interface Piece {
 const TOUCH_MAX_FPS = 48;
 // ...and, on every device, a title card can't be crossed faster than this, so momentum lands on it.
 const TOUCH_TITLE_MIN_SECONDS = 2.5;
+// How far (in screens) the scroll position may run ahead of the playhead while a title card is held.
+const TITLE_MAX_LEAD = 0.5;
 const SMOOTHING = 0.22; // 1 = no easing between scroll position and what's drawn
 const GRAIN: GrainParams = { opacity: 0.19, size: 1, fps: 18, blend: 'hard-light' };
 
@@ -302,6 +304,13 @@ export function start() {
       if (smoothY >= b && smoothY + stepY < b) { stepY = b - 0.5 - smoothY; break; }
     }
     smoothY = reduce.matches || Math.abs(d) < 0.5 ? target : smoothY + stepY;
+    // While a title card is held, don't let the scroll position run far ahead of (or behind) the playhead:
+    // scrolling during the hold would otherwise pile up and spring through the whole piece afterwards.
+    if (!reduce.matches && !transition && locate(tl, smoothY).seg.phase === 'title') {
+      const maxLead = window.innerHeight * TITLE_MAX_LEAD;
+      const lead = target - smoothY;
+      if (Math.abs(lead) > maxLead) window.scrollTo({ top: smoothY + Math.sign(lead) * maxLead, behavior: 'instant' });
+    }
     const vel = smoothY - lastY;
     lastY = smoothY;
     if (Math.abs(vel) > 0.8) lastMoveAt = now;
