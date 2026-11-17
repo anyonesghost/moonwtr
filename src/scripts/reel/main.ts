@@ -25,6 +25,8 @@ interface Piece {
 // however hard the page is flicked (phone momentum scrolling would otherwise skip whole pieces).
 // The reel plays at 24 fps, so 48 = twice real time. Raise it for a looser feel, lower to slow it.
 const TOUCH_MAX_FPS = 48;
+// ...and a title card can't be crossed faster than this, so a flick from the previous piece lands on it.
+const TOUCH_TITLE_MIN_SECONDS = 2.5;
 const SMOOTHING = 0.22; // 1 = no easing between scroll position and what's drawn
 const GRAIN: GrainParams = { opacity: 0.19, size: 1, fps: 18, blend: 'hard-light' };
 
@@ -282,7 +284,11 @@ export function start() {
     const d = target - smoothY;
     let stepY = d * SMOOTHING;
     if (coarse.matches) {
-      const cap = TOUCH_MAX_FPS * (VH.perFrame / 100) * window.innerHeight * dt;
+      let pxPerSec = TOUCH_MAX_FPS * (VH.perFrame / 100) * window.innerHeight;
+      if (locate(tl, smoothY).seg.phase === 'title') {
+        pxPerSec = Math.min(pxPerSec, ((VH.title / 100) * window.innerHeight) / TOUCH_TITLE_MIN_SECONDS);
+      }
+      const cap = pxPerSec * dt;
       stepY = Math.max(-cap, Math.min(cap, stepY));
     }
     smoothY = reduce.matches || Math.abs(d) < 0.5 ? target : smoothY + stepY;
