@@ -1,62 +1,26 @@
 [
   {
-    "id": "the-cascades",
-    "title": "The Cascades",
+    "id": "the-awakening",
+    "title": "The Awakening",
     "year": "2026",
     "medium": "3D animation / Blender",
     "hook": "Placeholder hook: one line that makes you stay.",
-    "source": "raw/The Cascades/PNG",
-    "frames": "lab/reel/the-cascades",
-    "frameCount": 481,
-    "orientation": "vertical",
+    "source": "/Volumes/TheSurvey/WEBSITE/RAW/The Awakening",
+    "frames": "lab/reel/the-awakening",
+    "frameCount": 401,
+    "orientation": "horizontal",
     "hotspots": null
   },
   {
-    "id": "the-wandering",
-    "title": "The Wandering",
+    "id": "the-canopy",
+    "title": "The Canopy",
     "year": "2026",
     "medium": "3D animation / Blender",
     "hook": "Placeholder hook: one line that makes you stay.",
-    "source": "raw/The Wandering/PNG",
-    "frames": "lab/reel/the-wandering",
-    "frameCount": 481,
-    "orientation": "vertical",
-    "hotspots": null
-  },
-  {
-    "id": "the-witness",
-    "title": "The Witness",
-    "year": "2026",
-    "medium": "3D animation / Blender",
-    "hook": "Placeholder hook: one line that makes you stay.",
-    "source": "raw/The Witness/PNG",
-    "frames": "lab/reel/the-witness",
-    "frameCount": 481,
-    "orientation": "vertical",
-    "hotspots": null
-  },
-  {
-    "id": "the-nest",
-    "title": "The Nest",
-    "year": "2026",
-    "medium": "3D animation / Blender",
-    "hook": "Placeholder hook: one line that makes you stay.",
-    "source": "raw/The Nest/PNG",
-    "frames": "lab/reel/the-nest",
-    "frameCount": 480,
-    "orientation": "vertical",
-    "hotspots": null
-  },
-  {
-    "id": "the-stormy-cliff",
-    "title": "The Stormy Cliff",
-    "year": "2026",
-    "medium": "3D animation / Blender",
-    "hook": "Placeholder hook: one line that makes you stay.",
-    "source": "raw/The Stormy Cliff/PNG",
-    "frames": "lab/reel/the-stormy-cliff",
-    "frameCount": 480,
-    "orientation": "vertical",
+    "source": "/Volumes/TheSurvey/WEBSITE/RAW/The Canopy",
+    "frames": "lab/reel/the-canopy",
+    "frameCount": 401,
+    "orientation": "horizontal",
     "hotspots": null
   },
   {
@@ -65,10 +29,55 @@
     "year": "2026",
     "medium": "3D animation / Blender",
     "hook": "Placeholder hook: one line that makes you stay.",
-    "source": "raw/the inferno/PNG",
+    "source": "/Volumes/TheSurvey/WEBSITE/RAW/The Inferno",
     "frames": "lab/reel/the-inferno",
-    "frameCount": 250,
-    "orientation": "vertical",
+    "frameCount": 401,
+    "orientation": "horizontal",
     "hotspots": null
+  },
+  {
+    "id": "the-release",
+    "title": "The Release",
+    "year": "2026",
+    "medium": "3D animation / Blender",
+    "hook": "Placeholder hook: one line that makes you stay.",
+    "source": "/Volumes/TheSurvey/WEBSITE/RAW/The Release",
+    "frames": "lab/scroll-test",
+    "frameCount": 401,
+    "orientation": "horizontal",
+    "hotspots": "lab/scroll-test/hotspots.json",
+    "reuse": true,
+    "markers": [
+      {
+        "name": "Geometry Lore",
+        "kind": "lore",
+        "card": "geometry-lore",
+        "reveal": [
+          140,
+          190
+        ],
+        "frame": 296
+      },
+      {
+        "name": "Researchers",
+        "kind": "lore",
+        "card": "researchers",
+        "reveal": [
+          165,
+          215
+        ],
+        "frame": 324
+      },
+      {
+        "name": "Orb Lore",
+        "kind": "lore",
+        "card": "orb-lore",
+        "reveal": [
+          215,
+          270
+        ],
+        "frame": 355
+      }
+    ]
   }
 ]

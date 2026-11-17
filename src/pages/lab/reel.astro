@@ -105,8 +105,8 @@ const tapes = pieces.map((p, i) => ({
       </div>
       <div class="tape__grid">
         {tapes.map((t, i) => (
-          <button class="tape__item" type="button" data-i={i}>
-            <img class="tape__still" src={t.still} alt="" loading="lazy" width="84" height="150" />
+          <button class="tape__item" type="button" data-i={i} data-orient={t.orientation}>
+            <img class="tape__still" src={t.still} alt="" loading="lazy" width={t.orientation === 'vertical' ? 84 : 400} height={t.orientation === 'vertical' ? 150 : 200} />
             <span class="tape__body">
               <span class="tape__no">TAPE {t.no}</span>
               <span class="tape__title">{t.title}</span>
@@ -658,7 +658,7 @@ const tapes = pieces.map((p, i) => ({
         flex: 1;
         overflow-y: auto;
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
         gap: 14px;
         padding: 8px 52px 56px 18px;
         align-content: start;
@@ -686,6 +686,9 @@ const tapes = pieces.map((p, i) => ({
         background: #000;
         filter: contrast(1.05) saturate(0.9);
       }
+      /* 2:1 pieces: the still sits on top at full label width */
+      .tape__item[data-orient='horizontal'] { grid-template-columns: 1fr; gap: 10px; }
+      .tape__item[data-orient='horizontal'] .tape__still { width: 100%; height: auto; aspect-ratio: 2 / 1; }
       .tape__body { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
       .tape__no { font-size: 10px; letter-spacing: 0.2em; color: #888; }
       .tape__title { font-size: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }

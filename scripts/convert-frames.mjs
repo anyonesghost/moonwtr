@@ -18,12 +18,20 @@
 //       and writes `frameCount` back into src/data/pieces.json (that field only).
 //       Pieces whose output manifest already matches are skipped unless --force.
 //
+// Where the PNGs live: `source` in pieces.json can be
+//   - an absolute path (e.g. a network drive: "/Volumes/Studio/Renders/The Nest/PNG"), or
+//   - relative, which resolves against $REEL_RAW_ROOT if you set it, else against this repo.
+// So the multi-GB PNGs can stay on the drive. They are only read, once each, and never copied;
+// only the small WebP output is written locally (public/lab/reel/).
+//   REEL_RAW_ROOT="/Volumes/Studio/Renders" node scripts/convert-frames.mjs reel
+//
 // Output names keep the Blender frame number exactly as in the source filename (digits only, padding kept).
 // The frames/desktop and frames/mobile folders are cleared before a piece is (re)converted.
 //
 // Per-piece knobs (optional fields in pieces.json):
 //   "step": 2          keep every 2nd frame (halves the payload; the scrub gets a little steppier)
 //   "quality": {"desktop": 74, "mobile": 72}
+//   "reuse": true      frames already exist at `frames` (not made by this script); leave them alone
 
 import { mkdir, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
 import os from 'node:os';
@@ -50,6 +58,12 @@ async function listFrames(dir) {
     .filter(Boolean)
     .sort((a, b) => a.frame - b.frame);
   return files;
+}
+
+/** Resolve a piece's `source`: absolute as-is, else against $REEL_RAW_ROOT, else the repo. */
+function resolveSource(source) {
+  if (path.isAbsolute(source)) return source;
+  return path.resolve(process.env.REEL_RAW_ROOT || root, source);
 }
 
 /** Run an async worker over indices 0..n-1 with limited concurrency. */
@@ -199,13 +213,18 @@ async function reel(args) {
 
   for (const piece of pieces) {
     if (wanted.length && !wanted.includes(piece.id)) continue;
+    if (piece.reuse) {
+      // Frames already live elsewhere in public/ (e.g. the scroll-test). Never re-encode over them.
+      console.log(`[${piece.id}] reuses ${piece.frames}, skipping`);
+      continue;
+    }
 
-    const srcDir = path.join(root, piece.source);
+    const srcDir = resolveSource(piece.source);
     const outRoot = path.join(root, 'public', piece.frames);
     const outDir = path.join(outRoot, 'frames');
     const all = await listFrames(srcDir);
     if (all.length === 0) {
-      console.error(`\n[${piece.id}] no numbered PNGs in ${piece.source}, skipping`);
+      console.error(`\n[${piece.id}] no numbered PNGs in ${srcDir} (drive not mounted? wrong path?), skipping`);
       continue;
     }
     const step = Math.max(1, piece.step ?? 1);
@@ -246,9 +265,10 @@ async function reel(args) {
     let lastPct = -1;
     await pool(files.length, async (i) => {
       const { file, id } = files[i];
-      const row = { id, src: (await stat(path.join(srcDir, file))).size };
+      const buf = await readFile(path.join(srcDir, file)); // one network read per frame
+      const row = { id, src: buf.length };
       for (const v of variants) {
-        const info = await sharp(path.join(srcDir, file))
+        const info = await sharp(buf)
           .resize({ ...v.resize, withoutEnlargement: true })
           .webp({ quality: v.quality, effort: 5 })
           .toFile(path.join(outDir, v.name, `${id}.webp`));
