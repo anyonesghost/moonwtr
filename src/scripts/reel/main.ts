@@ -27,7 +27,8 @@ const GRAIN: GrainParams = { opacity: 0.19, size: 1, fps: 18, blend: 'hard-light
 export function start() {
   const $ = (id: string) => document.getElementById(id)!;
   const BASE = (document.body.dataset.base ?? '').replace(/\/$/, '');
-  const url = (rel: string) => `${BASE}/${rel.replace(/^\//, '')}`;
+  const MEDIA = (document.body.dataset.media ?? BASE).replace(/\/$/, '');
+  const url = (rel: string) => `${MEDIA}/${rel.replace(/^\//, '')}`;
   const LORE_ICON = `${BASE}/icons/Lore%20Marker.png`;
   const pieces: Piece[] = JSON.parse($('pieces-data').textContent || '[]');
   const N = pieces.length;

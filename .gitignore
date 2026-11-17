@@ -25,3 +25,9 @@ pnpm-debug.log*
 
 # raw render sources (Blender frame sequences)
 raw/
+
+# staged media for Cloudflare
+media-dist/
+
+# reel frames are hosted on Cloudflare Pages (scripts/publish-media.sh)
+public/lab/reel/

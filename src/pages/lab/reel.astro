@@ -3,9 +3,12 @@
 // Data:   src/data/pieces.json   (edit titles/hooks there)
 // Frames: node scripts/convert-frames.mjs reel   -> public/lab/reel/<id>/...
 import pieces from '../../data/pieces.json';
+import media from '../../data/media.json';
 import { buildTimeline, timecode, VF } from '../../scripts/reel/timeline';
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+// Heavy media (frames, cards, hotspots) can live on another host: set mediaBase in src/data/media.json.
+const mediaBase = (media.mediaBase || base).replace(/\/$/, '');
 
 // End card: placeholders, swap in your own.
 const END = {
@@ -23,7 +26,7 @@ const tapes = pieces.map((p, i) => ({
   no: String(i + 1).padStart(2, '0'),
   tcIn: timecode(tl.pieceVStart[i]),
   tcRun: timecode(tl.pieceVLen[i]),
-  still: `${base}/${p.frames}/still.webp`,
+  still: `${mediaBase}/${p.frames}/still.webp`,
 }));
 ---
 
@@ -42,7 +45,7 @@ const tapes = pieces.map((p, i) => ({
     />
   </head>
 
-  <body data-base={base}>
+  <body data-base={base} data-media={mediaBase}>
     <script is:inline type="application/json" id="pieces-data" set:html={JSON.stringify(pieces)}></script>
 
     <main class="scroller" id="scroller">
