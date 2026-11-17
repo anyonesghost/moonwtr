@@ -5,7 +5,7 @@
 import { FrameStore, type StoreManifest, type Variant } from './frame-store';
 import { initGrain, type GrainParams } from './grain';
 import { PieceHotspots, type HotspotFile, type MarkerConfig, type Rect } from './hotspots';
-import { buildTimeline, locate, smoothstep as ss, timecode, type Phase, type Timeline } from './timeline';
+import { buildTimeline, locate, smoothstep as ss, timecode, VH, type Phase, type Timeline } from './timeline';
 import { Vcr, type KeySource } from './vcr';
 
 interface Piece {
@@ -21,6 +21,10 @@ interface Piece {
   markers?: MarkerConfig[];
 }
 
+// Touch speed limit: the drawn playhead can't travel faster than this many scrub frames per second,
+// however hard the page is flicked (phone momentum scrolling would otherwise skip whole pieces).
+// The reel plays at 24 fps, so 48 = twice real time. Raise it for a looser feel, lower to slow it.
+const TOUCH_MAX_FPS = 48;
 const SMOOTHING = 0.22; // 1 = no easing between scroll position and what's drawn
 const GRAIN: GrainParams = { opacity: 0.19, size: 1, fps: 18, blend: 'hard-light' };
 
@@ -70,6 +74,8 @@ export function start() {
   const strips = new Map<number, Promise<{ img: ImageBitmap; count: number } | null>>();
 
   let smoothY = 0;
+  let lastNow = 0;
+  const coarse = window.matchMedia('(pointer: coarse)');
   let lastY = 0;
   let lastMoveAt = 0;
   let displayV = 0;
@@ -270,9 +276,16 @@ export function start() {
   function tick(now: number) {
     requestAnimationFrame(tick);
 
+    const dt = Math.min(0.1, Math.max(0.001, (now - (lastNow || now - 16.7)) / 1000));
+    lastNow = now;
     const target = window.scrollY;
     const d = target - smoothY;
-    smoothY = reduce.matches || Math.abs(d) < 0.5 ? target : smoothY + d * SMOOTHING;
+    let stepY = d * SMOOTHING;
+    if (coarse.matches) {
+      const cap = TOUCH_MAX_FPS * (VH.perFrame / 100) * window.innerHeight * dt;
+      stepY = Math.max(-cap, Math.min(cap, stepY));
+    }
+    smoothY = reduce.matches || Math.abs(d) < 0.5 ? target : smoothY + stepY;
     const vel = smoothY - lastY;
     lastY = smoothY;
     if (Math.abs(vel) > 0.8) lastMoveAt = now;
