@@ -79,5 +79,29 @@
         "frame": 355
       }
     ]
+  },
+  {
+    "id": "the-nest",
+    "title": "The Nest",
+    "year": "2026",
+    "medium": "3D animation / Blender",
+    "hook": "In the restricted section, Löm finds pressed botanical specimens collected centuries apart from a dozen worlds with no contact between them. Identical species. He has three of them pressed in his own field journal — collected on Vivendë.",
+    "source": "/Volumes/TheSurvey/WEBSITE/RAW/The Nest",
+    "frames": "lab/reel/the-nest",
+    "frameCount": 401,
+    "orientation": "horizontal",
+    "hotspots": null
+  },
+  {
+    "id": "the-depths-of-valhar",
+    "title": "The Depths of Valhar",
+    "year": "2026",
+    "medium": "3D animation / Blender",
+    "hook": "The gate does not open, it was always open. Stand at the threshold where the flowers crackle. Speak the oldest words. Not aloud, but beneath your breath. Let it flow through you and consume. Through Valhar, all will be revealed.",
+    "source": "/Volumes/TheSurvey/WEBSITE/RAW/The Depths of Valhar",
+    "frames": "lab/reel/the-depths-of-valhar",
+    "frameCount": 401,
+    "orientation": "horizontal",
+    "hotspots": null
   }
 ]

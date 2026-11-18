@@ -25,6 +25,10 @@
 // only the small WebP output is written locally (public/lab/reel/).
 //   REEL_RAW_ROOT="/Volumes/Studio/Renders" node scripts/convert-frames.mjs reel
 //
+// Dedicated mobile renders: if <source>/mobile (or /Mobile) holds the same numbered frames (portrait
+// crops), the mobile variant is encoded from those instead of downscaling the desktop render. If that
+// folder is missing or incomplete (e.g. still rendering) mobile falls back to the desktop frames.
+//
 // Output names keep the Blender frame number exactly as in the source filename (digits only, padding kept).
 // The frames/desktop and frames/mobile folders are cleared before a piece is (re)converted.
 //
@@ -64,6 +68,21 @@ async function listFrames(dir) {
 function resolveSource(source) {
   if (path.isAbsolute(source)) return source;
   return path.resolve(process.env.REEL_RAW_ROOT || root, source);
+}
+
+/** A dedicated mobile folder for a piece, if it has one covering exactly the same frames. */
+async function findMobileSource(srcDir, files) {
+  // Use the folder's real on-disk spelling (the drive may be case-insensitive for listing but not for open).
+  const real = (await readdir(srcDir).catch(() => [])).filter((n) => n.toLowerCase() === 'mobile');
+  for (const name of real) {
+    const dir = path.join(srcDir, name);
+    const mfiles = await listFrames(dir);
+    if (mfiles.length === 0) continue;
+    const byId = new Map(mfiles.map((f) => [f.id, f.file]));
+    if (files.every((f) => byId.has(f.id))) return { dir, byId };
+    console.warn(`  ! ${dir} has ${mfiles.length} frames, desktop has ${files.length}; ignoring it (mobile falls back to desktop frames)`);
+  }
+  return null;
 }
 
 /** Run an async worker over indices 0..n-1 with limited concurrency. */
@@ -190,6 +209,8 @@ const REEL_VARIANTS = {
     mobile: { resize: { width: 1080 }, quality: 78 },
   },
 };
+// Mobile frames from a dedicated portrait render (1280x2560 source) -> 720x1440.
+const MOBILE_PORTRAIT = { resize: { width: 720 }, quality: 72 };
 const KEY_COUNT = 8; // low-res keyframes per piece, used by the VCR fast-forward
 const KEY_CELL_WIDTH = 216; // px per keyframe cell in the strip
 const KEY_QUALITY = 70;
@@ -214,8 +235,42 @@ async function reel(args) {
   for (const piece of pieces) {
     if (wanted.length && !wanted.includes(piece.id)) continue;
     if (piece.reuse) {
-      // Frames already live elsewhere in public/ (e.g. the scroll-test). Never re-encode over them.
-      console.log(`[${piece.id}] reuses ${piece.frames}, skipping`);
+      // Frames already live elsewhere in public/ (e.g. the scroll-test). Never re-encode the desktop ones;
+      // but if there is a dedicated mobile render, encode just the mobile variant next to them.
+      const reSrc = resolveSource(piece.source);
+      const reOut = path.join(root, 'public', piece.frames, 'frames');
+      const manPath = path.join(reOut, 'manifest.json');
+      const man = JSON.parse(await readFile(manPath, 'utf8'));
+      const reFiles = man.frames.map((id) => ({ id }));
+      const mob = await findMobileSource(reSrc, reFiles);
+      if (!mob) {
+        console.log(`[${piece.id}] reuses ${piece.frames}, no dedicated mobile render, skipping`);
+        continue;
+      }
+      if (!force && man.mobileDedicated) {
+        console.log(`[${piece.id}] reuses ${piece.frames}, dedicated mobile already encoded, skipping (use --force to redo)`);
+        continue;
+      }
+      const mq = piece.quality?.mobile ?? MOBILE_PORTRAIT.quality;
+      await rm(path.join(reOut, 'mobile'), { recursive: true, force: true });
+      await mkdir(path.join(reOut, 'mobile'), { recursive: true });
+      console.log(`\n[${piece.id}] reuse: ${man.frames.length} dedicated mobile frames, q${mq}`);
+      let mdims;
+      let total = 0;
+      await pool(man.frames.length, async (i) => {
+        const id = man.frames[i];
+        const buf = await readFile(path.join(mob.dir, mob.byId.get(id)));
+        const info = await sharp(buf)
+          .resize({ ...MOBILE_PORTRAIT.resize, withoutEnlargement: true })
+          .webp({ quality: mq, effort: 5 })
+          .toFile(path.join(reOut, 'mobile', `${id}.webp`));
+        mdims ??= { width: info.width, height: info.height };
+        total += info.size;
+      });
+      man.variants.mobile = mdims;
+      man.mobileDedicated = true;
+      await writeFile(manPath, JSON.stringify(man) + '\n');
+      console.log(`  mobile ${mdims.width}x${mdims.height}  ${mb(total)}`);
       continue;
     }
 
@@ -230,11 +285,14 @@ async function reel(args) {
     const step = Math.max(1, piece.step ?? 1);
     const files = all.filter((_, i) => i % step === 0 || i === all.length - 1);
 
+    const mobileSrc = await findMobileSource(srcDir, files);
+
     // Skip when the output is already complete for this exact frame list.
     if (!force) {
       try {
         const prev = JSON.parse(await readFile(path.join(outDir, 'manifest.json'), 'utf8'));
-        if (prev.frames.length === files.length && prev.frames[0] === files[0].id && prev.frames.at(-1) === files.at(-1).id) {
+        if (prev.frames.length === files.length && prev.frames[0] === files[0].id && prev.frames.at(-1) === files.at(-1).id &&
+          Boolean(prev.mobileDedicated) === Boolean(mobileSrc)) {
           console.log(`[${piece.id}] up to date (${files.length} frames), skipping (use --force to redo)`);
           piece.frameCount = files.length;
           continue;
@@ -246,7 +304,11 @@ async function reel(args) {
 
     const set = REEL_VARIANTS[piece.orientation] ?? REEL_VARIANTS.vertical;
     const q = piece.quality ?? {};
-    const variants = Object.entries(set).map(([name, v]) => ({ name, resize: v.resize, quality: q[name] ?? v.quality }));
+    const variants = Object.entries(set).map(([name, v]) => {
+      const dedicated = name === 'mobile' && mobileSrc;
+      const base = dedicated ? MOBILE_PORTRAIT : v;
+      return { name, resize: base.resize, quality: q[name] ?? base.quality, dedicated };
+    });
 
     for (const v of variants) {
       await rm(path.join(outDir, v.name), { recursive: true, force: true });
@@ -256,7 +318,7 @@ async function reel(args) {
     const meta = await sharp(path.join(srcDir, files[0].file)).metadata();
     console.log(
       `\n[${piece.id}] ${files.length} frames${step > 1 ? ` (every ${step}th of ${all.length})` : ''}, ` +
-        `source ${meta.width}x${meta.height}, ${variants.map((v) => `${v.name} q${v.quality}`).join(', ')}`,
+        `source ${meta.width}x${meta.height}, ${variants.map((v) => `${v.name} q${v.quality}${v.dedicated ? ' (own render)' : ''}`).join(', ')}`,
     );
 
     const rows = new Array(files.length);
@@ -266,9 +328,10 @@ async function reel(args) {
     await pool(files.length, async (i) => {
       const { file, id } = files[i];
       const buf = await readFile(path.join(srcDir, file)); // one network read per frame
+      const mbuf = mobileSrc ? await readFile(path.join(mobileSrc.dir, mobileSrc.byId.get(id))) : null;
       const row = { id, src: buf.length };
       for (const v of variants) {
-        const info = await sharp(buf)
+        const info = await sharp(v.dedicated ? mbuf : buf)
           .resize({ ...v.resize, withoutEnlargement: true })
           .webp({ quality: v.quality, effort: 5 })
           .toFile(path.join(outDir, v.name, `${id}.webp`));
@@ -317,6 +380,7 @@ async function reel(args) {
       id: piece.id,
       frames: files.map((f) => f.id),
       variants: dims,
+      mobileDedicated: Boolean(mobileSrc),
       keys: { count: KEY_COUNT, cellWidth: KEY_CELL_WIDTH, cellHeight: cellH },
     };
     await writeFile(path.join(outDir, 'manifest.json'), JSON.stringify(manifest) + '\n');
