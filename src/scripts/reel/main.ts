@@ -52,6 +52,9 @@ export function start() {
   const bctx = bg.getContext('2d')!;
   const fade = $('fade');
   const titleEl = $('titleCard');
+  const cueEl = $('titleCue');
+  const cueFill = $('titleCueFill');
+  const cueText = $('titleCueText');
   const endEl = $('endCard');
   const hotspotLayer = $('hotspots');
   const rail = $('rail');
@@ -369,6 +372,14 @@ export function start() {
     }
     fade.style.opacity = (1 - level).toFixed(3);
     titleEl.style.opacity = titleOp.toFixed(3);
+    // scroll cue on every title card: the ring fills with progress through the card
+    const cueOn = seg.phase === 'title';
+    cueEl.classList.toggle('is-on', cueOn);
+    if (cueOn) {
+      cueFill.style.strokeDashoffset = (100 - t * 100).toFixed(2);
+      const msg = pi === 0 ? 'Scroll to start The Survey' : 'Scroll to continue';
+      if (cueText.textContent !== msg) cueText.textContent = msg;
+    }
     endEl.style.opacity = endOp.toFixed(3);
     endEl.classList.toggle('is-live', endOp > 0.5);
 

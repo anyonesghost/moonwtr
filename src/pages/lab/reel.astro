@@ -61,6 +61,18 @@ const tapes = pieces.map((p, i) => ({
           <h1 class="title__name" id="titleName"></h1>
           <p class="title__meta" id="titleMeta"></p>
           <p class="title__hook" id="titleHook"></p>
+          <div class="title__cue" id="titleCue" aria-hidden="true">
+            <span class="title__cue-text" id="titleCueText">Scroll to start The Survey</span>
+            <span class="title__cue-ring">
+              <svg viewBox="0 0 48 48" width="48" height="48">
+                <circle class="title__cue-track" cx="24" cy="24" r="21" />
+                <circle class="title__cue-fill" id="titleCueFill" cx="24" cy="24" r="21" pathLength="100" />
+              </svg>
+              <svg class="title__cue-arrow" viewBox="0 0 24 24" width="20" height="20">
+                <path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" />
+              </svg>
+            </span>
+          </div>
         </section>
 
         <section class="end" id="endCard">
@@ -243,6 +255,43 @@ const tapes = pieces.map((p, i) => ({
         font-size: 14px;
         line-height: 1.6;
         color: var(--text);
+      }
+
+      /* scroll cue: only on the first piece's title card; the ring fills as you scroll through it */
+      .title__cue {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: clamp(60px, 11vh, 100px);
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        color: var(--accent);
+        text-shadow: none;
+      }
+      .title__cue.is-on { display: flex; }
+      .title__cue-text {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.22em;
+        padding-left: 0.22em;
+      }
+      .title__cue-ring { position: relative; width: 48px; height: 48px; display: grid; place-items: center; }
+      .title__cue-ring svg:first-child { position: absolute; inset: 0; transform: rotate(-90deg); }
+      .title__cue-track, .title__cue-fill { fill: none; stroke-width: 2; }
+      .title__cue-track { stroke: var(--accent-dim); }
+      .title__cue-fill {
+        stroke: var(--accent);
+        stroke-linecap: round;
+        stroke-dasharray: 100;
+        stroke-dashoffset: 100;
+        filter: drop-shadow(0 0 4px var(--accent-glow));
+      }
+      .title__cue-arrow { animation: cue-pulse 1.6s var(--ease) infinite; }
+      @keyframes cue-pulse {
+        0%, 100% { transform: translateY(-3px); opacity: 0.45; }
+        50% { transform: translateY(3px); opacity: 1; }
       }
 
       /* ---- end card ---- */
@@ -754,7 +803,7 @@ const tapes = pieces.map((p, i) => ({
       }
 
       @media (prefers-reduced-motion: reduce) {
-        .hotspot__dot::after, .hotspot__icon, .tape, .osd.is-paused .osd__mode, .vcr-label.is-on { animation: none; }
+        .hotspot__dot::after, .hotspot__icon, .title__cue-arrow, .tape, .osd.is-paused .osd__mode, .vcr-label.is-on { animation: none; }
         .lore__pop, .lore__line, .vcr, .stage__bg { transition: none; }
         .hotspot, .hotspot__dot, .rail__stop, .rail__label { transition: none; }
       }
