@@ -103,5 +103,17 @@
     "frameCount": 401,
     "orientation": "horizontal",
     "hotspots": null
+  },
+  {
+    "id": "the-wandering",
+    "title": "The Wandering",
+    "year": "2026",
+    "medium": "3D animation / Blender",
+    "hook": "Nature's beauty does not ask how you're doing.",
+    "source": "/Volumes/TheSurvey/WEBSITE/RAW/The Wandering",
+    "frames": "lab/reel/the-wandering",
+    "frameCount": 401,
+    "orientation": "horizontal",
+    "hotspots": null
   }
 ]
