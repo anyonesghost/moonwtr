@@ -377,7 +377,7 @@ export function start() {
     cueEl.classList.toggle('is-on', cueOn);
     if (cueOn) {
       cueFill.style.strokeDashoffset = (100 - t * 100).toFixed(2);
-      const msg = pi === 0 ? 'Scroll to start The Survey' : 'Scroll to continue';
+      const msg = pi === 0 ? 'Scroll to explore The Survey' : 'Scroll to continue';
       if (cueText.textContent !== msg) cueText.textContent = msg;
     }
     endEl.style.opacity = endOp.toFixed(3);
